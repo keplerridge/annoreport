@@ -352,7 +352,7 @@ def cluster_genes(enriched_genes):
 def write_tsv(outpath, enriched_genes, hypothetical_count, feature_counter,
               total_cds, bin_count, top_n, tool):
     annotated = total_cds - hypothetical_count
-    with open(outpath, 'w') as f:
+    with open(outpath, 'w', encoding='utf-8') as f:
         f.write(f"# Annotation Gene Product Summary\n")
         f.write(f"# Tool: {tool.capitalize()}\n")
         f.write(f"# Bins analyzed: {bin_count}\n")
@@ -1026,7 +1026,7 @@ function filterTable() {{
 </body>
 </html>"""
 
-    with open(outpath, 'w') as f:
+    with open(outpath, 'w', encoding='utf-8') as f:
         f.write(html_content)
 
     print(f"HTML report written to: {outpath}")
