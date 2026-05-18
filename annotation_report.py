@@ -111,7 +111,11 @@ def parse_gff_files(annotation_dir, extension='gff'):
 
 def parse_tsvs(annotation_dir, tool):
     tsv_files = glob.glob(os.path.join(annotation_dir, '**', '*.tsv'), recursive=True)
-    tsv_files = [f for f in tsv_files if 'hypothetical' not in os.path.basename(f).lower()]
+    tsv_files = [
+        f for f in tsv_files
+        if not any(skip in os.path.basename(f).lower()
+               for skip in ('hypothetical', 'inference'))
+    ]
 
     if not tsv_files:
         sys.exit(f"ERROR: No .tsv files found under '{annotation_dir}'.")
