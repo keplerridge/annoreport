@@ -2,6 +2,8 @@
 
 A command-line tool for summarizing and visualizing gene annotation results from metagenome-assembled genome (MAG) workflows. Supports output from [Prokka](https://github.com/tseemann/prokka) and [Bakta](https://github.com/oschwengers/bakta), enriches results via the [UniProt REST API](https://www.uniprot.org/help/api), and produces a polished interactive HTML report alongside a TSV summary table.
 
+[![Bioconda](https://img.shields.io/conda/vn/bioconda/annoreport.svg)](https://anaconda.org/bioconda/annoreport)
+
 ---
 
 ## Features
@@ -32,6 +34,12 @@ A command-line tool for summarizing and visualizing gene annotation results from
 
 ## Installation
 
+### Bioconda (recommended)
+```bash
+conda install -c bioconda annoreport
+```
+
+### From source
 ```bash
 git clone https://github.com/keplerridge/annoreport.git
 cd annoreport
@@ -128,7 +136,7 @@ Plus a feature type summary appended at the bottom.
 | Tool | File Types Used | Notes |
 |---|---|---|
 | **Prokka** | `.tsv`, `.gff` | Reads EC numbers and COG categories if present |
-| **Bakta** | `.tsv`, `.gff3`, `.json` | Reads database cross-references; auto-skips `hypotheticals.tsv` |
+| **Bakta** | `.tsv`, `.gff3`, `.json` | Reads database cross-references; auto-skips `hypotheticals.tsv` and `inference.tsv`|
 
 Tool auto-detection checks for `.gff3` or `.json` files (Bakta) versus `.gff` or `.tsv` only (Prokka).
 
@@ -203,5 +211,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## Citation
 
 If you use this tool in your research, please cite it as:
+
+> annoreport: a summary and visualization tool for MAG annotation workflows. 
+> https://github.com/keplerridge/annoreport
 
 > annoreport: a summary and visualization tool for MAG annotation workflows. https://github.com/keplerridge/annoreport
