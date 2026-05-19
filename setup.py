@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='annoreport',
-    version='0.1.0',
+    version='0.1.1',
     description='Summary and visualization tool for MAG gene annotation workflows',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
