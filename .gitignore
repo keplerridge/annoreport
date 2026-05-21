@@ -1,0 +1,11 @@
+# Build artifacts
+annoreport.egg-info/
+dist/
+build/
+*.egg-info/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
