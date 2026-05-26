@@ -39,6 +39,11 @@ A command-line tool for summarizing and visualizing gene annotation results from
 conda install -c bioconda annoreport
 ```
 
+### PyPI
+```bash
+pip install annoreport
+```
+
 ### From source
 ```bash
 git clone https://github.com/keplerridge/annoreport.git
