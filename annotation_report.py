@@ -42,7 +42,7 @@ import urllib.parse
 import urllib.error
 from datetime import datetime
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 # ─────────────────────────────────────────────
 # Tool detection
@@ -598,8 +598,8 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
             --surface:  #181c25;
             --surface2: #1e2330;
             --border:   #2a3040;
-            --text:     #e2e8f0;
-            --muted:    #64748b;
+            --text:     #f1f5f9;
+            --muted:    #94a3b8;
             --accent:   {tool_color};
             --accent2:  #f59e0b;
             --danger:   #ef4444;
@@ -637,7 +637,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
 
         .header-left .source-path {{
             font-family: var(--mono);
-            font-size: 0.72em;
+            font-size: 0.80em;
             color: var(--muted);
             margin-top: 6px;
             word-break: break-all;
@@ -649,7 +649,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
             gap: 6px;
             background: var(--accent);
             color: #fff;
-            font-size: 0.78em;
+            font-size: 0.85em;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -672,7 +672,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
             background: var(--surface2);
             border: 1px solid var(--border);
             font-family: var(--mono);
-            font-size: 0.72em;
+            font-size: 0.80em;
             color: var(--muted);
             padding: 3px 9px;
             border-radius: 4px;
@@ -709,7 +709,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         }}
 
         .stat-label {{
-            font-size: 0.72em;
+            font-size: 0.80em;
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.07em;
@@ -718,7 +718,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
 
         .stat-sub {{
             font-family: var(--mono);
-            font-size: 0.68em;
+            font-size: 0.85em;
             color: var(--muted);
             margin-top: 3px;
         }}
@@ -732,7 +732,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         }}
 
         .section-title {{
-            font-size: 0.75em;
+            font-size: 0.85em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -754,7 +754,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         }}
 
         .hyp-num  {{ font-size: 2.2em; font-weight: 800; color: var(--accent2); white-space: nowrap; letter-spacing: -0.03em; }}
-        .hyp-text {{ font-size: 0.85em; color: #a8915a; line-height: 1.5; }}
+        .hyp-text {{ font-size: 0.85em; color: #d4a853; line-height: 1.5; }}
         .hyp-pct  {{ font-family: var(--mono); font-size: 0.8em; margin-top: 3px; color: var(--muted); }}
 
         .two-col {{
@@ -772,7 +772,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
             background: var(--surface2);
             padding: 9px 12px;
             text-align: left;
-            font-size: 0.72em;
+            font-size: 0.80em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.07em;
@@ -795,20 +795,20 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         .feat-bar   {{ width: 200px; }}
         .mini-bar-wrap {{ display: flex; align-items: center; gap: 8px; }}
         .mini-bar {{ height: 6px; background: var(--accent); border-radius: 2px; min-width: 2px; opacity: 0.7; }}
-        .mini-bar-wrap span {{ font-size: 0.78em; color: var(--muted); white-space: nowrap; font-family: var(--mono); }}
+        .mini-bar-wrap span {{ font-size: 0.85em; color: var(--muted); white-space: nowrap; font-family: var(--mono); }}
 
         .rna-table td:first-child {{ font-family: var(--mono); color: var(--success); }}
         .rna-table td:last-child  {{ text-align: right; color: var(--text); font-weight: 600; }}
 
         .tag-section {{ margin-bottom: 20px; }}
-        .tag-title {{ font-size: 0.68em; font-weight: 700; text-transform: uppercase;
+        .tag-title {{ font-size: 0.85em; font-weight: 700; text-transform: uppercase;
                       letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }}
         .tag-row {{ display: flex; align-items: center; gap: 8px; padding: 5px 0;
                     border-bottom: 1px solid var(--border); }}
         .tag-row:last-child {{ border-bottom: none; }}
         .tag-name {{ font-family: var(--mono); font-size: 0.8em; color: var(--accent);
                      flex: 0 0 auto; min-width: 80px; }}
-        .tag-count {{ font-size: 0.78em; color: var(--muted); flex: 0 0 50px;
+        .tag-count {{ font-size: 0.85em; color: var(--muted); flex: 0 0 50px;
                       text-align: right; font-variant-numeric: tabular-nums; }}
         .tag-bar-bg {{ flex: 1; height: 4px; background: var(--border); border-radius: 2px; }}
         .tag-bar {{ height: 100%; background: var(--accent); border-radius: 2px; opacity: 0.6; }}
@@ -837,7 +837,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         }}
 
         .cluster-name  {{ font-weight: 700; font-size: 0.88em; color: var(--cluster-color); }}
-        .cluster-stats {{ font-family: var(--mono); font-size: 0.7em; color: var(--muted); white-space: nowrap; }}
+        .cluster-stats {{ font-family: var(--mono); font-size: 0.80em; color: var(--muted); white-space: nowrap; }}
         .cluster-tags  {{ display: flex; flex-wrap: wrap; gap: 6px; }}
 
         .cluster-tag {{
@@ -845,7 +845,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 3px 8px;
-            font-size: 0.74em;
+            font-size: 0.82em;
             color: var(--text);
             display: inline-flex;
             align-items: center;
@@ -875,23 +875,23 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         }}
 
         .cbar-row:last-child {{ border-bottom: none; }}
-        .cbar-label {{ font-size: 0.8em; color: var(--text); width: 220px; flex-shrink: 0; }}
+        .cbar-label {{ font-size: 0.88em; color: var(--text); width: 220px; flex-shrink: 0; }}
         .cbar-bar   {{ height: 12px; border-radius: 3px; opacity: 0.8; min-width: 2px; }}
-        .cbar-count {{ font-family: var(--mono); font-size: 0.78em; color: var(--text); font-weight: 600; white-space: nowrap; }}
+        .cbar-count {{ font-family: var(--mono); font-size: 0.85em; color: var(--text); font-weight: 600; white-space: nowrap; }}
         .cbar-pct   {{ color: var(--muted); font-weight: 400; }}
 
         /* ── Gene table ── */
         .g-rank    {{ color: var(--muted); font-family: var(--mono); font-size: 0.8em; width: 36px; }}
         .g-product {{ font-weight: 600; color: var(--text); min-width: 160px; }}
         .g-gene    {{ font-family: var(--mono); color: #a78bfa; width: 80px; font-size: 0.88em; }}
-        .g-func    {{ color: var(--muted); font-size: 0.82em; line-height: 1.5; min-width: 240px; }}
+        .g-func    {{ color: var(--muted); font-size: 0.88em; line-height: 1.5; min-width: 240px; }}
         .g-count   {{ text-align: right; color: var(--accent); font-weight: 700;
                       font-variant-numeric: tabular-nums; width: 70px; font-family: var(--mono); }}
         .g-pct     {{ width: 160px; }}
 
         .bar-wrap  {{ display: flex; align-items: center; gap: 8px; }}
         .bar       {{ height: 8px; background: var(--accent); border-radius: 2px; min-width: 2px; opacity: 0.75; }}
-        .bar-wrap span {{ font-family: var(--mono); font-size: 0.78em; color: var(--muted); white-space: nowrap; }}
+        .bar-wrap span {{ font-family: var(--mono); font-size: 0.85em; color: var(--muted); white-space: nowrap; }}
 
         .search-bar {{
             width: 100%;
@@ -912,7 +912,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         .footer {{
             text-align: center;
             color: var(--muted);
-            font-size: 0.75em;
+            font-size: 0.85em;
             font-family: var(--mono);
             margin-top: 32px;
             padding-top: 20px;
