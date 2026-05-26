@@ -686,7 +686,7 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
 
         .stats-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
             gap: 12px;
             margin-bottom: 28px;
         }}
@@ -700,12 +700,14 @@ def write_html(outpath, enriched_genes, hypothetical_count, feature_counter,
         }}
 
         .stat-num {{
-            font-size: clamp(1.1em, 2vw, 1.8em);
+            font-size: clamp(0.65em, 1.5vw, 1.8em);
             font-weight: 800;
             color: var(--accent);
             letter-spacing: -0.03em;
             line-height: 1;
-            word-break: break-word;
+            word-break: break-all;
+            width: 100%;
+            display: block;
         }}
 
         .stat-label {{
