@@ -217,7 +217,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 If you use this tool in your research, please cite it as:
 
-> annoreport: a summary and visualization tool for MAG annotation workflows. 
-> https://github.com/keplerridge/annoreport
+**Software:**
+> Ridge K, Adams BJ. annoreport: an interactive tool for metagenome annotation.
+> Code Ocean 2026. https://doi.org/10.24433/CO.0062762.v1
 
-> annoreport: a summary and visualization tool for MAG annotation workflows. https://github.com/keplerridge/annoreport
+**Paper:** *(citation will be updated upon publication)*
