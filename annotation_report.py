@@ -43,7 +43,7 @@ import urllib.parse
 import urllib.error
 from datetime import datetime
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 # ─────────────────────────────────────────────
 # Tool detection
