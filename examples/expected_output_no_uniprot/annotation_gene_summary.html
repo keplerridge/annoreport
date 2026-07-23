@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annotation Report — Prokka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #0f1117;
+            --surface:  #181c25;
+            --surface2: #1e2330;
+            --border:   #2a3040;
+            --text:     #f1f5f9;
+            --muted:    #94a3b8;
+            --accent:   #3b82f6;
+            --accent2:  #f59e0b;
+            --danger:   #ef4444;
+            --success:  #10b981;
+            --mono:     'DM Mono', monospace;
+            --sans:     'Syne', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 28px 40px 24px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 1.6em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .header-left .source-path {
+            font-family: var(--mono);
+            font-size: 0.80em;
+            color: var(--muted);
+            margin-top: 6px;
+            word-break: break-all;
+        }
+
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            margin-top: 4px;
+        }
+
+        .tool-badge::before {
+            content: '';
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            display: inline-block;
+        }
+
+        .meta-pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .meta-pill {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 0.80em;
+            color: var(--muted);
+            padding: 3px 9px;
+            border-radius: 4px;
+        }
+
+        .page-body {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: clamp(0.65em, 1.5vw, 1.8em);
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            word-break: break-all;
+            width: 100%;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.80em;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-top: 5px;
+        }
+
+        .stat-sub {
+            font-family: var(--mono);
+            font-size: 0.85em;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 0.85em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hyp-callout {
+            background: #1c1a0e;
+            border: 1px solid #3d3510;
+            border-left: 4px solid var(--accent2);
+            border-radius: 8px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hyp-num  { font-size: 2.2em; font-weight: 800; color: var(--accent2); white-space: nowrap; letter-spacing: -0.03em; }
+        .hyp-text { font-size: 0.85em; color: #d4a853; line-height: 1.5; }
+        .hyp-pct  { font-family: var(--mono); font-size: 0.8em; margin-top: 3px; color: var(--muted); }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.84em; }
+
+        thead th {
+            background: var(--surface2);
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 0.80em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr:hover { background: var(--surface2); }
+        tbody tr:last-child td { border-bottom: none; }
+        .empty { color: var(--muted); font-style: italic; padding: 16px 12px; }
+
+        .feat-name  { font-family: var(--mono); color: var(--accent); font-size: 0.9em; }
+        .feat-count { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; width: 70px; }
+        .feat-bar   { width: 200px; }
+        .mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
+        .mini-bar { height: 6px; background: var(--accent); border-radius: 2px; min-width: 2px; opacity: 0.7; }
+        .mini-bar-wrap span { font-size: 0.85em; color: var(--muted); white-space: nowrap; font-family: var(--mono); }
+
+        .rna-table td:first-child { font-family: var(--mono); color: var(--success); }
+        .rna-table td:last-child  { text-align: right; color: var(--text); font-weight: 600; }
+
+        .tag-section { margin-bottom: 20px; }
+        .tag-title { font-size: 0.85em; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+        .tag-row { display: flex; align-items: center; gap: 8px; padding: 5px 0;
+                    border-bottom: 1px solid var(--border); }
+        .tag-row:last-child { border-bottom: none; }
+        .tag-name { font-family: var(--mono); font-size: 0.8em; color: var(--accent);
+                     flex: 0 0 auto; min-width: 80px; }
+        .tag-count { font-size: 0.85em; color: var(--muted); flex: 0 0 50px;
+                      text-align: right; font-variant-numeric: tabular-nums; }
+        .tag-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+        .tag-bar { height: 100%; background: var(--accent); border-radius: 2px; opacity: 0.6; }
+
+        /* ── Functional cluster cards ── */
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 16px;
+        }
+
+        .cluster-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--cluster-color);
+            border-radius: 8px;
+            padding: 16px 18px;
+        }
+
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .cluster-name  { font-weight: 700; font-size: 0.88em; color: var(--cluster-color); }
+        .cluster-stats { font-family: var(--mono); font-size: 0.80em; color: var(--muted); white-space: nowrap; }
+        .cluster-tags  { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .cluster-tag {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.82em;
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: default;
+            max-width: 100%;
+        }
+
+        .cluster-tag-count {
+            background: var(--cluster-color);
+            color: #fff;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-family: var(--mono);
+            font-size: 0.82em;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        /* ── Cluster bar chart ── */
+        .cbar-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cbar-row:last-child { border-bottom: none; }
+        .cbar-label { font-size: 0.88em; color: var(--text); width: 220px; flex-shrink: 0; }
+        .cbar-bar   { height: 12px; border-radius: 3px; opacity: 0.8; min-width: 2px; }
+        .cbar-count { font-family: var(--mono); font-size: 0.85em; color: var(--text); font-weight: 600; white-space: nowrap; }
+        .cbar-pct   { color: var(--muted); font-weight: 400; }
+
+        /* ── Gene table ── */
+        .g-rank    { color: var(--muted); font-family: var(--mono); font-size: 0.8em; width: 36px; }
+        .g-product { font-weight: 600; color: var(--text); min-width: 160px; }
+        .g-gene    { font-family: var(--mono); color: #a78bfa; width: 80px; font-size: 0.88em; }
+        .g-func    { color: var(--muted); font-size: 0.88em; line-height: 1.5; min-width: 240px; }
+        .g-count   { text-align: right; color: var(--accent); font-weight: 700;
+                      font-variant-numeric: tabular-nums; width: 70px; font-family: var(--mono); }
+        .g-pct     { width: 160px; }
+
+        .bar-wrap  { display: flex; align-items: center; gap: 8px; }
+        .bar       { height: 8px; background: var(--accent); border-radius: 2px; min-width: 2px; opacity: 0.75; }
+        .bar-wrap span { font-family: var(--mono); font-size: 0.85em; color: var(--muted); white-space: nowrap; }
+
+        .search-bar {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 9px 14px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.85em;
+            margin-bottom: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus { border-color: var(--accent); }
+        .search-bar::placeholder { color: var(--muted); }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85em;
+            font-family: var(--mono);
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>Genome Annotation Report</h1>
+        <div class="source-path">/home/kridge7/groups/grp_ktr_research/annoreport/examples/prokka_example</div>
+        
+    </div>
+    <div>
+        <div class="tool-badge">Prokka</div>
+    </div>
+</div>
+
+<div class="page-body">
+
+    <div class="stats-grid">
+        
+        <div class="stat-card">
+            <div class="stat-num" >10</div>
+            <div class="stat-label">Bins / MAGs</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >6,746</div>
+            <div class="stat-label">Contigs</div>
+            <div class="stat-sub">N50: 6,704 bp</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >35.2 Mbp</div>
+            <div class="stat-label">Assembly Size</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >35,219</div>
+            <div class="stat-label">Total CDS</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" style="color:#f59e0b">43.1%</div>
+            <div class="stat-label">Annotation Rate</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >362</div>
+            <div class="stat-label">RNA Features</div>
+            
+        </div>
+    </div>
+
+    <div class="section" style="margin-bottom:20px;">
+        <div class="section-title">Hypothetical Proteins</div>
+        <div class="hyp-callout">
+            <div class="hyp-num">20,031</div>
+            <div>
+                <div class="hyp-text">
+                    CDS with no known function — excluded from the top-100 gene product table.
+                </div>
+                <div class="hyp-pct">
+                    56.9% of all CDS &nbsp;·&nbsp;
+                    15,188 annotated CDS (43.1%)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="two-col">
+        <div class="section">
+            <div class="section-title">Feature Type Summary</div>
+            <table>
+                <thead>
+                    <tr><th>Type</th><th style="text-align:right">Count</th><th>Distribution</th></tr>
+                </thead>
+                <tbody>
+        <tr>
+            <td class="feat-name">CDS</td>
+            <td class="feat-count">35,219</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:148px"></div>
+                    <span>99.0%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="feat-name">tRNA</td>
+            <td class="feat-count">347</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:1px"></div>
+                    <span>1.0%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="feat-name">rRNA</td>
+            <td class="feat-count">7</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:0px"></div>
+                    <span>0.0%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="feat-name">tmRNA</td>
+            <td class="feat-count">3</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:0px"></div>
+                    <span>0.0%</span>
+                </div>
+            </td>
+        </tr></tbody>
+            </table>
+        </div>
+        <div class="section">
+            <div class="section-title">RNA Features</div>
+            <table class="rna-table">
+                <thead><tr><th>Feature</th><th style="text-align:right">Count</th></tr></thead>
+                <tbody><tr><td>tRNA</td><td>347</td></tr><tr><td>rRNA</td><td>7</td></tr><tr><td>repeat_region</td><td>5</td></tr><tr><td>tmRNA</td><td>3</td></tr></tbody>
+            </table>
+            <div class="tag-section" style="margin-top:20px;"><div class="tag-section"><div class="tag-title">Top EC Numbers</div>
+            <div class="tag-row">
+                <span class="tag-name">2.7.13.3</span>
+                <span class="tag-count">211</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:4%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">3.1.-.-</span>
+                <span class="tag-count">194</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:4%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">7.1.1.-</span>
+                <span class="tag-count">130</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:3%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">1.-.-.-</span>
+                <span class="tag-count">104</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">3.6.1.-</span>
+                <span class="tag-count">101</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">7.6.2.-</span>
+                <span class="tag-count">97</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">2.1.1.-</span>
+                <span class="tag-count">82</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">2.7.11.1</span>
+                <span class="tag-count">75</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div></div><div class="tag-section"><div class="tag-title">Top COG Categories</div>
+            <div class="tag-row">
+                <span class="tag-name">COG1028</span>
+                <span class="tag-count">134</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:3%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG0745</span>
+                <span class="tag-count">76</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG1960</span>
+                <span class="tag-count">71</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG2197</span>
+                <span class="tag-count">67</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG1024</span>
+                <span class="tag-count">59</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG1595</span>
+                <span class="tag-count">55</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG0451</span>
+                <span class="tag-count">49</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG0410</span>
+                <span class="tag-count">49</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div></div></div>
+        </div>
+    </div>
+
+    
+
+    <!-- Top N gene products -->
+    <div class="section">
+        <div class="section-title">Top 100 Annotated Gene Products</div>
+        <p style="font-size:0.8em; color:var(--muted); margin-bottom:14px;">
+            Percentages are of total CDS (including hypotheticals).
+            
+        </p>
+        <input
+            class="search-bar"
+            type="text"
+            id="geneSearch"
+            placeholder="Filter by product name..."
+            oninput="filterTable()"
+        >
+        <table id="geneTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Gene Product</th>
+                    
+                    <th style="text-align:right">Count</th>
+                    <th>% of CDS</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="g-rank">1</td>
+            <td class="g-product">putative protein</td>
+            
+            <td class="g-count">219</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:15px"></div>
+                    <span>0.62%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">2</td>
+            <td class="g-product">Adaptive-response sensory-kinase SasA</td>
+            
+            <td class="g-count">74</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:5px"></div>
+                    <span>0.21%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">3</td>
+            <td class="g-product">Sensor histidine kinase RcsC</td>
+            
+            <td class="g-count">68</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:4px"></div>
+                    <span>0.19%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">4</td>
+            <td class="g-product">High-affinity branched-chain amino acid transport ATP-binding protein LivF</td>
+            
+            <td class="g-count">49</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.14%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">5</td>
+            <td class="g-product">High-affinity branched-chain amino acid transport system permease protein LivH</td>
+            
+            <td class="g-count">47</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.13%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">6</td>
+            <td class="g-product">Vitamin B12 import ATP-binding protein BtuD</td>
+            
+            <td class="g-count">45</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.13%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">7</td>
+            <td class="g-product">D-inositol-3-phosphate glycosyltransferase</td>
+            
+            <td class="g-count">44</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">8</td>
+            <td class="g-product">Inositol 2-dehydrogenase/D-chiro-inositol 3-dehydrogenase</td>
+            
+            <td class="g-count">44</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">9</td>
+            <td class="g-product">ATP-binding protein Uup</td>
+            
+            <td class="g-count">44</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">10</td>
+            <td class="g-product">3-oxoacyl-[acyl-carrier-protein] reductase FabG</td>
+            
+            <td class="g-count">41</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">11</td>
+            <td class="g-product">Tyrosine recombinase XerC</td>
+            
+            <td class="g-count">39</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.11%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">12</td>
+            <td class="g-product">Ubiquinone/menaquinone biosynthesis C-methyltransferase UbiE</td>
+            
+            <td class="g-count">37</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.11%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">13</td>
+            <td class="g-product">Protein</td>
+            
+            <td class="g-count">36</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.10%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">14</td>
+            <td class="g-product">TonB-dependent receptor P3</td>
+            
+            <td class="g-count">35</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.10%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">15</td>
+            <td class="g-product">Thiol-disulfide oxidoreductase ResA</td>
+            
+            <td class="g-count">34</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.10%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">16</td>
+            <td class="g-product">Serine/threonine-protein kinase PknD</td>
+            
+            <td class="g-count">31</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.09%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">17</td>
+            <td class="g-product">Enterobactin exporter EntS</td>
+            
+            <td class="g-count">29</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">18</td>
+            <td class="g-product">Lipopolysaccharide export system ATP-binding protein LptB</td>
+            
+            <td class="g-count">29</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">19</td>
+            <td class="g-product">Glutathione transport system permease protein GsiD</td>
+            
+            <td class="g-count">28</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">20</td>
+            <td class="g-product">Transcriptional regulatory protein DegU</td>
+            
+            <td class="g-count">27</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">21</td>
+            <td class="g-product">Acyl-CoA dehydrogenase</td>
+            
+            <td class="g-count">27</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">22</td>
+            <td class="g-product">putative oxidoreductase</td>
+            
+            <td class="g-count">24</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">23</td>
+            <td class="g-product">Chaperone MoxR1</td>
+            
+            <td class="g-count">23</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">24</td>
+            <td class="g-product">Oligopeptide transport ATP-binding protein OppD</td>
+            
+            <td class="g-count">23</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">25</td>
+            <td class="g-product">Protein-glutamate methylesterase/protein-glutamine glutaminase</td>
+            
+            <td class="g-count">23</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">26</td>
+            <td class="g-product">Malonyl-[acyl-carrier protein] O-methyltransferase</td>
+            
+            <td class="g-count">22</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">27</td>
+            <td class="g-product">HTH-type transcriptional regulator</td>
+            
+            <td class="g-count">21</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">28</td>
+            <td class="g-product">RNA polymerase sigma-H factor</td>
+            
+            <td class="g-count">21</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">29</td>
+            <td class="g-product">3-oxoacyl-[acyl-carrier-protein] synthase 2</td>
+            
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">30</td>
+            <td class="g-product">tRNA(fMet)-specific endonuclease VapC</td>
+            
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">31</td>
+            <td class="g-product">Protein-methionine-sulfoxide reductase catalytic subunit MsrP</td>
+            
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">32</td>
+            <td class="g-product">Protein-L-isoaspartate O-methyltransferase</td>
+            
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">33</td>
+            <td class="g-product">putative HTH-type transcriptional regulator</td>
+            
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">34</td>
+            <td class="g-product">Phosphoglycolate phosphatase</td>
+            
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">35</td>
+            <td class="g-product">Hydroxyacylglutathione hydrolase</td>
+            
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">36</td>
+            <td class="g-product">Dipeptide transport system permease protein DppB</td>
+            
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">37</td>
+            <td class="g-product">ATP-dependent zinc metalloprotease FtsH</td>
+            
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">38</td>
+            <td class="g-product">Glutamine--fructose-6-phosphate aminotransferase [isomerizing]</td>
+            
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">39</td>
+            <td class="g-product">3-phenylpropionate-dihydrodiol/cinnamic acid-dihydrodiol dehydrogenase</td>
+            
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">40</td>
+            <td class="g-product">2-succinyl-6-hydroxy-2,4-cyclohexadiene-1-carboxylate synthase</td>
+            
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">41</td>
+            <td class="g-product">1-deoxyxylulose-5-phosphate synthase YajO</td>
+            
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">42</td>
+            <td class="g-product">Histidinol-phosphate aminotransferase</td>
+            
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">43</td>
+            <td class="g-product">HTH-type transcriptional activator RhaS</td>
+            
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">44</td>
+            <td class="g-product">Acetyl-coenzyme A synthetase</td>
+            
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">45</td>
+            <td class="g-product">F420-dependent glucose-6-phosphate dehydrogenase</td>
+            
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">46</td>
+            <td class="g-product">Long-chain-fatty-acid--CoA ligase</td>
+            
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">47</td>
+            <td class="g-product">Glutathione transport system permease protein GsiC</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">48</td>
+            <td class="g-product">Beta-ketoacyl-[acyl-carrier-protein] synthase III</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">49</td>
+            <td class="g-product">[Ribosomal protein bS18]-alanine N-acetyltransferase</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">50</td>
+            <td class="g-product">putative ABC transporter ATP-binding protein</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">51</td>
+            <td class="g-product">Linearmycin resistance ATP-binding protein LnrL</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">52</td>
+            <td class="g-product">Riboflavin transport system permease protein RibX</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">53</td>
+            <td class="g-product">Inosine-5&#x27;-monophosphate dehydrogenase</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">54</td>
+            <td class="g-product">Glutamate-1-semialdehyde 2,1-aminomutase</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">55</td>
+            <td class="g-product">Formamidopyrimidine-DNA glycosylase</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">56</td>
+            <td class="g-product">TonB-dependent receptor P26</td>
+            
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">57</td>
+            <td class="g-product">Arabinooligosaccharides transport system permease protein AraQ</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">58</td>
+            <td class="g-product">DNA polymerase IV</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">59</td>
+            <td class="g-product">Release factor glutamine methyltransferase</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">60</td>
+            <td class="g-product">L-threonine 3-dehydrogenase</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">61</td>
+            <td class="g-product">Sec-independent protein translocase protein TatA</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">62</td>
+            <td class="g-product">Fatty acid oxidation complex subunit alpha</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">63</td>
+            <td class="g-product">Beta-barrel assembly-enhancing protease</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">64</td>
+            <td class="g-product">Tol-Pal system protein TolB</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">65</td>
+            <td class="g-product">Ubiquinone biosynthesis O-methyltransferase</td>
+            
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">66</td>
+            <td class="g-product">Lactose transport system permease protein LacF</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">67</td>
+            <td class="g-product">Deoxyribokinase</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">68</td>
+            <td class="g-product">Transcriptional regulatory protein WalR</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">69</td>
+            <td class="g-product">4-hydroxy-tetrahydrodipicolinate synthase</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">70</td>
+            <td class="g-product">GMP synthase [glutamine-hydrolyzing]</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">71</td>
+            <td class="g-product">Holliday junction branch migration complex subunit RuvB</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">72</td>
+            <td class="g-product">Trehalase</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">73</td>
+            <td class="g-product">Di/tripeptide transport system permease protein DppB</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">74</td>
+            <td class="g-product">Multidrug resistance protein MdtA</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">75</td>
+            <td class="g-product">Vitamin B12 transporter BtuB</td>
+            
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">76</td>
+            <td class="g-product">Chaperone protein DnaK</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">77</td>
+            <td class="g-product">Beta-galactosidase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">78</td>
+            <td class="g-product">Oligopeptide transport ATP-binding protein OppF</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">79</td>
+            <td class="g-product">Polyribonucleotide nucleotidyltransferase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">80</td>
+            <td class="g-product">Ribose-phosphate pyrophosphokinase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">81</td>
+            <td class="g-product">Energy-dependent translational throttle protein EttA</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">82</td>
+            <td class="g-product">Single-stranded DNA-binding protein</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">83</td>
+            <td class="g-product">Tryptophan synthase beta chain</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">84</td>
+            <td class="g-product">Putative multidrug export ATP-binding/permease protein</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">85</td>
+            <td class="g-product">6-phosphogluconolactonase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">86</td>
+            <td class="g-product">Transcription elongation factor GreA</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">87</td>
+            <td class="g-product">DNA primase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">88</td>
+            <td class="g-product">GTPase Der</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">89</td>
+            <td class="g-product">Mycothiol acetyltransferase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">90</td>
+            <td class="g-product">putative zinc protease</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">91</td>
+            <td class="g-product">Methionyl-tRNA formyltransferase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">92</td>
+            <td class="g-product">Regulator of RpoS</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">93</td>
+            <td class="g-product">D-aminopeptidase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">94</td>
+            <td class="g-product">Putative aliphatic sulfonates transport permease protein SsuC</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">95</td>
+            <td class="g-product">Succinate--glutarate CoA-transferase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">96</td>
+            <td class="g-product">Feruloyl-CoA synthase</td>
+            
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">97</td>
+            <td class="g-product">putative ABC transporter ATP-binding protein YknY</td>
+            
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">98</td>
+            <td class="g-product">Aminomethyltransferase</td>
+            
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">99</td>
+            <td class="g-product">Phosphatidylglycerol--prolipoprotein diacylglyceryl transferase</td>
+            
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">100</td>
+            <td class="g-product">Sulfoquinovosyl glycerol transport system permease protein SmoH</td>
+            
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr></tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        annotation_report.py &nbsp;·&nbsp; Prokka &nbsp;·&nbsp;
+        Generated 2026-07-23 16:45
+        &nbsp;·&nbsp; UniProt lookup skipped
+    </div>
+
+</div>
+
+<script>
+function filterTable() {
+    const q    = document.getElementById('geneSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#geneTable tbody tr');
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+</script>
+
+</body>
+</html>

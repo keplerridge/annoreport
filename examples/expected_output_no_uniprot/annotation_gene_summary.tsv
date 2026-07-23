@@ -1,0 +1,116 @@
+# Annotation Gene Product Summary
+# Tool: Prokka
+# Bins analyzed: 10
+# Total CDS: 35219
+# Hypothetical proteins: 20031 (56.9% of CDS)
+# Annotated CDS: 15188
+# Top 100 annotated gene products shown
+#
+rank	count	percent_of_total_cds	product	gene_name	function	keywords
+1	219	0.62%	putative protein	—	—	—
+2	74	0.21%	Adaptive-response sensory-kinase SasA	—	—	—
+3	68	0.19%	Sensor histidine kinase RcsC	—	—	—
+4	49	0.14%	High-affinity branched-chain amino acid transport ATP-binding protein LivF	—	—	—
+5	47	0.13%	High-affinity branched-chain amino acid transport system permease protein LivH	—	—	—
+6	45	0.13%	Vitamin B12 import ATP-binding protein BtuD	—	—	—
+7	44	0.12%	D-inositol-3-phosphate glycosyltransferase	—	—	—
+8	44	0.12%	Inositol 2-dehydrogenase/D-chiro-inositol 3-dehydrogenase	—	—	—
+9	44	0.12%	ATP-binding protein Uup	—	—	—
+10	41	0.12%	3-oxoacyl-[acyl-carrier-protein] reductase FabG	—	—	—
+11	39	0.11%	Tyrosine recombinase XerC	—	—	—
+12	37	0.11%	Ubiquinone/menaquinone biosynthesis C-methyltransferase UbiE	—	—	—
+13	36	0.10%	Protein	—	—	—
+14	35	0.10%	TonB-dependent receptor P3	—	—	—
+15	34	0.10%	Thiol-disulfide oxidoreductase ResA	—	—	—
+16	31	0.09%	Serine/threonine-protein kinase PknD	—	—	—
+17	29	0.08%	Enterobactin exporter EntS	—	—	—
+18	29	0.08%	Lipopolysaccharide export system ATP-binding protein LptB	—	—	—
+19	28	0.08%	Glutathione transport system permease protein GsiD	—	—	—
+20	27	0.08%	Transcriptional regulatory protein DegU	—	—	—
+21	27	0.08%	Acyl-CoA dehydrogenase	—	—	—
+22	24	0.07%	putative oxidoreductase	—	—	—
+23	23	0.07%	Chaperone MoxR1	—	—	—
+24	23	0.07%	Oligopeptide transport ATP-binding protein OppD	—	—	—
+25	23	0.07%	Protein-glutamate methylesterase/protein-glutamine glutaminase	—	—	—
+26	22	0.06%	Malonyl-[acyl-carrier protein] O-methyltransferase	—	—	—
+27	21	0.06%	HTH-type transcriptional regulator	—	—	—
+28	21	0.06%	RNA polymerase sigma-H factor	—	—	—
+29	20	0.06%	3-oxoacyl-[acyl-carrier-protein] synthase 2	—	—	—
+30	20	0.06%	tRNA(fMet)-specific endonuclease VapC	—	—	—
+31	20	0.06%	Protein-methionine-sulfoxide reductase catalytic subunit MsrP	—	—	—
+32	20	0.06%	Protein-L-isoaspartate O-methyltransferase	—	—	—
+33	19	0.05%	putative HTH-type transcriptional regulator	—	—	—
+34	19	0.05%	Phosphoglycolate phosphatase	—	—	—
+35	19	0.05%	Hydroxyacylglutathione hydrolase	—	—	—
+36	19	0.05%	Dipeptide transport system permease protein DppB	—	—	—
+37	18	0.05%	ATP-dependent zinc metalloprotease FtsH	—	—	—
+38	18	0.05%	Glutamine--fructose-6-phosphate aminotransferase [isomerizing]	—	—	—
+39	18	0.05%	3-phenylpropionate-dihydrodiol/cinnamic acid-dihydrodiol dehydrogenase	—	—	—
+40	18	0.05%	2-succinyl-6-hydroxy-2,4-cyclohexadiene-1-carboxylate synthase	—	—	—
+41	17	0.05%	1-deoxyxylulose-5-phosphate synthase YajO	—	—	—
+42	17	0.05%	Histidinol-phosphate aminotransferase	—	—	—
+43	17	0.05%	HTH-type transcriptional activator RhaS	—	—	—
+44	17	0.05%	Acetyl-coenzyme A synthetase	—	—	—
+45	17	0.05%	F420-dependent glucose-6-phosphate dehydrogenase	—	—	—
+46	17	0.05%	Long-chain-fatty-acid--CoA ligase	—	—	—
+47	16	0.05%	Glutathione transport system permease protein GsiC	—	—	—
+48	16	0.05%	Beta-ketoacyl-[acyl-carrier-protein] synthase III	—	—	—
+49	16	0.05%	[Ribosomal protein bS18]-alanine N-acetyltransferase	—	—	—
+50	16	0.05%	putative ABC transporter ATP-binding protein	—	—	—
+51	16	0.05%	Linearmycin resistance ATP-binding protein LnrL	—	—	—
+52	16	0.05%	Riboflavin transport system permease protein RibX	—	—	—
+53	16	0.05%	Inosine-5'-monophosphate dehydrogenase	—	—	—
+54	16	0.05%	Glutamate-1-semialdehyde 2,1-aminomutase	—	—	—
+55	16	0.05%	Formamidopyrimidine-DNA glycosylase	—	—	—
+56	16	0.05%	TonB-dependent receptor P26	—	—	—
+57	15	0.04%	Arabinooligosaccharides transport system permease protein AraQ	—	—	—
+58	15	0.04%	DNA polymerase IV	—	—	—
+59	15	0.04%	Release factor glutamine methyltransferase	—	—	—
+60	15	0.04%	L-threonine 3-dehydrogenase	—	—	—
+61	15	0.04%	Sec-independent protein translocase protein TatA	—	—	—
+62	15	0.04%	Fatty acid oxidation complex subunit alpha	—	—	—
+63	15	0.04%	Beta-barrel assembly-enhancing protease	—	—	—
+64	15	0.04%	Tol-Pal system protein TolB	—	—	—
+65	15	0.04%	Ubiquinone biosynthesis O-methyltransferase	—	—	—
+66	14	0.04%	Lactose transport system permease protein LacF	—	—	—
+67	14	0.04%	Deoxyribokinase	—	—	—
+68	14	0.04%	Transcriptional regulatory protein WalR	—	—	—
+69	14	0.04%	4-hydroxy-tetrahydrodipicolinate synthase	—	—	—
+70	14	0.04%	GMP synthase [glutamine-hydrolyzing]	—	—	—
+71	14	0.04%	Holliday junction branch migration complex subunit RuvB	—	—	—
+72	14	0.04%	Trehalase	—	—	—
+73	14	0.04%	Di/tripeptide transport system permease protein DppB	—	—	—
+74	14	0.04%	Multidrug resistance protein MdtA	—	—	—
+75	14	0.04%	Vitamin B12 transporter BtuB	—	—	—
+76	13	0.04%	Chaperone protein DnaK	—	—	—
+77	13	0.04%	Beta-galactosidase	—	—	—
+78	13	0.04%	Oligopeptide transport ATP-binding protein OppF	—	—	—
+79	13	0.04%	Polyribonucleotide nucleotidyltransferase	—	—	—
+80	13	0.04%	Ribose-phosphate pyrophosphokinase	—	—	—
+81	13	0.04%	Energy-dependent translational throttle protein EttA	—	—	—
+82	13	0.04%	Single-stranded DNA-binding protein	—	—	—
+83	13	0.04%	Tryptophan synthase beta chain	—	—	—
+84	13	0.04%	Putative multidrug export ATP-binding/permease protein	—	—	—
+85	13	0.04%	6-phosphogluconolactonase	—	—	—
+86	13	0.04%	Transcription elongation factor GreA	—	—	—
+87	13	0.04%	DNA primase	—	—	—
+88	13	0.04%	GTPase Der	—	—	—
+89	13	0.04%	Mycothiol acetyltransferase	—	—	—
+90	13	0.04%	putative zinc protease	—	—	—
+91	13	0.04%	Methionyl-tRNA formyltransferase	—	—	—
+92	13	0.04%	Regulator of RpoS	—	—	—
+93	13	0.04%	D-aminopeptidase	—	—	—
+94	13	0.04%	Putative aliphatic sulfonates transport permease protein SsuC	—	—	—
+95	13	0.04%	Succinate--glutarate CoA-transferase	—	—	—
+96	13	0.04%	Feruloyl-CoA synthase	—	—	—
+97	12	0.03%	putative ABC transporter ATP-binding protein YknY	—	—	—
+98	12	0.03%	Aminomethyltransferase	—	—	—
+99	12	0.03%	Phosphatidylglycerol--prolipoprotein diacylglyceryl transferase	—	—	—
+100	12	0.03%	Sulfoquinovosyl glycerol transport system permease protein SmoH	—	—	—
+
+# Feature type summary
+feature_type	count
+CDS	35219
+tRNA	347
+rRNA	7
+tmRNA	3

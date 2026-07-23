@@ -9,10 +9,12 @@ A command-line tool for summarizing and visualizing gene annotation results from
 ## Features
 
 - **Auto-detects** Prokka or Bakta output from directory contents
+- **GFF-Only** Works with GFF/GFF3 files alone, without requiring full Prokka or Bakta output; compatible with public genome catalogs such as UHGG
+- **Compressed file support** Accepts `.gz` compressed GFF files directly without manual decompression
 - **Counts and ranks** the top N most common annotated gene products across all bins
 - **Separates hypothetical proteins** from annotated CDS and reports them independently
-- **UniProt enrichment** — looks up gene names and one-line function descriptions for each top gene product
-- **Functional clustering** — groups genes into biological categories (DNA Metabolism, Translation, Energy & Metabolism, Stress & Chaperones, etc.) based on UniProt keywords
+- **UniProt annotation lookup** — looks up gene names and one-line function descriptions for each top gene product
+- **Functional clustering** — groups genes into biological categories (DNA Metabolism, Translation, Energy & Metabolism, Stress & Chaperones, etc.) based on UniProt keywords. See [FUNCTIONAL_CATEGORIES.md](FUNCTIONAL_CATEGORIES.md) for complete category definitions
 - **Interactive HTML report** with:
   - Summary stat cards (bins, contigs, assembly size, CDS counts, annotation rate, RNA features)
   - Feature type and RNA feature tables
@@ -28,7 +30,8 @@ A command-line tool for summarizing and visualizing gene annotation results from
 
 - Python 3.9+
 - No external dependencies — uses Python standard library only
-- Internet access required for UniProt enrichment (unless `--no_uniprot` is used)
+- Internet access required for UniProt annotation lookup (unless `--no_uniprot` is used)
+- Compressed GFF files (`.gz`) are supported natively
 
 ---
 
@@ -101,6 +104,34 @@ python3 annotation_report.py \
 
 ---
 
+## Examples
+
+A small example dataset is provided in the `examples/` directory, containing 
+10 Prokka-annotated MAGs from Antarctic soil metagenomes. Expected outputs are 
+provided both with and without UniProt annotation lookup for independent verification.
+
+### Run the example without UniProt lookup (fast, no internet required)
+
+```bash
+python3 annotation_report.py \
+    --annotation_dir examples/prokka_example \
+    --outdir examples/my_output \
+    --no_uniprot
+```
+
+### Run the example with UniProt annotation lookup
+
+```bash
+python3 annotation_report.py \
+    --annotation_dir examples/prokka_example \
+    --outdir examples/my_output_uniprot
+```
+
+Expected outputs can be found in `examples/expected_output_no_uniprot/` and 
+`examples/expected_output_uniprot/` for comparison.
+
+---
+
 ## Arguments
 
 | Argument | Default | Description |
@@ -143,7 +174,7 @@ Plus a feature type summary appended at the bottom.
 | **Prokka** | `.tsv`, `.gff` | Reads EC numbers and COG categories if present |
 | **Bakta** | `.tsv`, `.gff3`, `.json` | Reads database cross-references; auto-skips `hypotheticals.tsv` and `inference.tsv`|
 
-Tool auto-detection checks for `.gff3` or `.json` files (Bakta) versus `.gff` or `.tsv` only (Prokka).
+Tool auto-detection checks for `.gff3` or `.json` files (Bakta) versus `.gff` or `.tsv` only (Prokka). GFF-only mode is used when no `.tsv` files are present.
 
 ---
 
@@ -165,6 +196,7 @@ When UniProt lookup is enabled, genes are assigned to one of the following categ
 | Other / Unclassified | No matching keywords found |
 
 Each gene is assigned to exactly one category. Priority follows the order above.
+See [FUNCTIONAL_CATEGORIES.md](FUNCTIONAL_CATEGORIES.md) for the complete keyword list and assignment rules.
 
 ---
 
@@ -202,8 +234,11 @@ rule annotation_report:
 
 - UniProt queries use the reviewed (Swiss-Prot) database only for high-quality annotations
 - A 0.2 second delay is applied between UniProt API calls to respect rate limits
-- For 100 gene products, the UniProt lookup phase takes approximately 30–40 seconds
+- For 100 gene products, the UniProt annotation lookup phase takes approximately 75–80 seconds for full Prokka or Bakta output and 79 seconds in GFF-only mode
+- Without UniProt annotation lookup, report generation takes approximately 12–17 seconds for full output and 17 seconds in GFF-only mode
+- Peak memory usage ranges from 25 to 42 MB depending on input mode
 - The `--no_uniprot` flag is recommended for quick runs or environments without internet access
+- GFF-only mode is compatible with compressed `.gz` files and public genome catalogues such as UHGG
 
 ---
 

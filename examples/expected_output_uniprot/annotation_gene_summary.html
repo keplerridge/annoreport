@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annotation Report — Prokka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #0f1117;
+            --surface:  #181c25;
+            --surface2: #1e2330;
+            --border:   #2a3040;
+            --text:     #f1f5f9;
+            --muted:    #94a3b8;
+            --accent:   #3b82f6;
+            --accent2:  #f59e0b;
+            --danger:   #ef4444;
+            --success:  #10b981;
+            --mono:     'DM Mono', monospace;
+            --sans:     'Syne', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 28px 40px 24px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 1.6em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .header-left .source-path {
+            font-family: var(--mono);
+            font-size: 0.80em;
+            color: var(--muted);
+            margin-top: 6px;
+            word-break: break-all;
+        }
+
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            margin-top: 4px;
+        }
+
+        .tool-badge::before {
+            content: '';
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            display: inline-block;
+        }
+
+        .meta-pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .meta-pill {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 0.80em;
+            color: var(--muted);
+            padding: 3px 9px;
+            border-radius: 4px;
+        }
+
+        .page-body {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: clamp(0.65em, 1.5vw, 1.8em);
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            word-break: break-all;
+            width: 100%;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.80em;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-top: 5px;
+        }
+
+        .stat-sub {
+            font-family: var(--mono);
+            font-size: 0.85em;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 0.85em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hyp-callout {
+            background: #1c1a0e;
+            border: 1px solid #3d3510;
+            border-left: 4px solid var(--accent2);
+            border-radius: 8px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hyp-num  { font-size: 2.2em; font-weight: 800; color: var(--accent2); white-space: nowrap; letter-spacing: -0.03em; }
+        .hyp-text { font-size: 0.85em; color: #d4a853; line-height: 1.5; }
+        .hyp-pct  { font-family: var(--mono); font-size: 0.8em; margin-top: 3px; color: var(--muted); }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.84em; }
+
+        thead th {
+            background: var(--surface2);
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 0.80em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr:hover { background: var(--surface2); }
+        tbody tr:last-child td { border-bottom: none; }
+        .empty { color: var(--muted); font-style: italic; padding: 16px 12px; }
+
+        .feat-name  { font-family: var(--mono); color: var(--accent); font-size: 0.9em; }
+        .feat-count { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; width: 70px; }
+        .feat-bar   { width: 200px; }
+        .mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
+        .mini-bar { height: 6px; background: var(--accent); border-radius: 2px; min-width: 2px; opacity: 0.7; }
+        .mini-bar-wrap span { font-size: 0.85em; color: var(--muted); white-space: nowrap; font-family: var(--mono); }
+
+        .rna-table td:first-child { font-family: var(--mono); color: var(--success); }
+        .rna-table td:last-child  { text-align: right; color: var(--text); font-weight: 600; }
+
+        .tag-section { margin-bottom: 20px; }
+        .tag-title { font-size: 0.85em; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+        .tag-row { display: flex; align-items: center; gap: 8px; padding: 5px 0;
+                    border-bottom: 1px solid var(--border); }
+        .tag-row:last-child { border-bottom: none; }
+        .tag-name { font-family: var(--mono); font-size: 0.8em; color: var(--accent);
+                     flex: 0 0 auto; min-width: 80px; }
+        .tag-count { font-size: 0.85em; color: var(--muted); flex: 0 0 50px;
+                      text-align: right; font-variant-numeric: tabular-nums; }
+        .tag-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+        .tag-bar { height: 100%; background: var(--accent); border-radius: 2px; opacity: 0.6; }
+
+        /* ── Functional cluster cards ── */
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 16px;
+        }
+
+        .cluster-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--cluster-color);
+            border-radius: 8px;
+            padding: 16px 18px;
+        }
+
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .cluster-name  { font-weight: 700; font-size: 0.88em; color: var(--cluster-color); }
+        .cluster-stats { font-family: var(--mono); font-size: 0.80em; color: var(--muted); white-space: nowrap; }
+        .cluster-tags  { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .cluster-tag {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.82em;
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: default;
+            max-width: 100%;
+        }
+
+        .cluster-tag-count {
+            background: var(--cluster-color);
+            color: #fff;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-family: var(--mono);
+            font-size: 0.82em;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        /* ── Cluster bar chart ── */
+        .cbar-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cbar-row:last-child { border-bottom: none; }
+        .cbar-label { font-size: 0.88em; color: var(--text); width: 220px; flex-shrink: 0; }
+        .cbar-bar   { height: 12px; border-radius: 3px; opacity: 0.8; min-width: 2px; }
+        .cbar-count { font-family: var(--mono); font-size: 0.85em; color: var(--text); font-weight: 600; white-space: nowrap; }
+        .cbar-pct   { color: var(--muted); font-weight: 400; }
+
+        /* ── Gene table ── */
+        .g-rank    { color: var(--muted); font-family: var(--mono); font-size: 0.8em; width: 36px; }
+        .g-product { font-weight: 600; color: var(--text); min-width: 160px; }
+        .g-gene    { font-family: var(--mono); color: #a78bfa; width: 80px; font-size: 0.88em; }
+        .g-func    { color: var(--muted); font-size: 0.88em; line-height: 1.5; min-width: 240px; }
+        .g-count   { text-align: right; color: var(--accent); font-weight: 700;
+                      font-variant-numeric: tabular-nums; width: 70px; font-family: var(--mono); }
+        .g-pct     { width: 160px; }
+
+        .bar-wrap  { display: flex; align-items: center; gap: 8px; }
+        .bar       { height: 8px; background: var(--accent); border-radius: 2px; min-width: 2px; opacity: 0.75; }
+        .bar-wrap span { font-family: var(--mono); font-size: 0.85em; color: var(--muted); white-space: nowrap; }
+
+        .search-bar {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 9px 14px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.85em;
+            margin-bottom: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus { border-color: var(--accent); }
+        .search-bar::placeholder { color: var(--muted); }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85em;
+            font-family: var(--mono);
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>Genome Annotation Report</h1>
+        <div class="source-path">/home/kridge7/groups/grp_ktr_research/annoreport/examples/prokka_example</div>
+        
+    </div>
+    <div>
+        <div class="tool-badge">Prokka</div>
+    </div>
+</div>
+
+<div class="page-body">
+
+    <div class="stats-grid">
+        
+        <div class="stat-card">
+            <div class="stat-num" >10</div>
+            <div class="stat-label">Bins / MAGs</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >6,746</div>
+            <div class="stat-label">Contigs</div>
+            <div class="stat-sub">N50: 6,704 bp</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >35.2 Mbp</div>
+            <div class="stat-label">Assembly Size</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >35,219</div>
+            <div class="stat-label">Total CDS</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" style="color:#f59e0b">43.1%</div>
+            <div class="stat-label">Annotation Rate</div>
+            
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" >362</div>
+            <div class="stat-label">RNA Features</div>
+            
+        </div>
+    </div>
+
+    <div class="section" style="margin-bottom:20px;">
+        <div class="section-title">Hypothetical Proteins</div>
+        <div class="hyp-callout">
+            <div class="hyp-num">20,031</div>
+            <div>
+                <div class="hyp-text">
+                    CDS with no known function — excluded from the top-100 gene product table.
+                </div>
+                <div class="hyp-pct">
+                    56.9% of all CDS &nbsp;·&nbsp;
+                    15,188 annotated CDS (43.1%)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="two-col">
+        <div class="section">
+            <div class="section-title">Feature Type Summary</div>
+            <table>
+                <thead>
+                    <tr><th>Type</th><th style="text-align:right">Count</th><th>Distribution</th></tr>
+                </thead>
+                <tbody>
+        <tr>
+            <td class="feat-name">CDS</td>
+            <td class="feat-count">35,219</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:148px"></div>
+                    <span>99.0%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="feat-name">tRNA</td>
+            <td class="feat-count">347</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:1px"></div>
+                    <span>1.0%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="feat-name">rRNA</td>
+            <td class="feat-count">7</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:0px"></div>
+                    <span>0.0%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="feat-name">tmRNA</td>
+            <td class="feat-count">3</td>
+            <td class="feat-bar">
+                <div class="mini-bar-wrap">
+                    <div class="mini-bar" style="width:0px"></div>
+                    <span>0.0%</span>
+                </div>
+            </td>
+        </tr></tbody>
+            </table>
+        </div>
+        <div class="section">
+            <div class="section-title">RNA Features</div>
+            <table class="rna-table">
+                <thead><tr><th>Feature</th><th style="text-align:right">Count</th></tr></thead>
+                <tbody><tr><td>tRNA</td><td>347</td></tr><tr><td>rRNA</td><td>7</td></tr><tr><td>repeat_region</td><td>5</td></tr><tr><td>tmRNA</td><td>3</td></tr></tbody>
+            </table>
+            <div class="tag-section" style="margin-top:20px;"><div class="tag-section"><div class="tag-title">Top EC Numbers</div>
+            <div class="tag-row">
+                <span class="tag-name">2.7.13.3</span>
+                <span class="tag-count">211</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:4%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">3.1.-.-</span>
+                <span class="tag-count">194</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:4%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">7.1.1.-</span>
+                <span class="tag-count">130</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:3%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">1.-.-.-</span>
+                <span class="tag-count">104</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">3.6.1.-</span>
+                <span class="tag-count">101</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">7.6.2.-</span>
+                <span class="tag-count">97</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">2.1.1.-</span>
+                <span class="tag-count">82</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">2.7.11.1</span>
+                <span class="tag-count">75</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div></div><div class="tag-section"><div class="tag-title">Top COG Categories</div>
+            <div class="tag-row">
+                <span class="tag-name">COG1028</span>
+                <span class="tag-count">134</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:3%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG0745</span>
+                <span class="tag-count">76</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:2%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG1960</span>
+                <span class="tag-count">71</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG2197</span>
+                <span class="tag-count">67</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG1024</span>
+                <span class="tag-count">59</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG1595</span>
+                <span class="tag-count">55</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG0451</span>
+                <span class="tag-count">49</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div>
+            <div class="tag-row">
+                <span class="tag-name">COG0410</span>
+                <span class="tag-count">49</span>
+                <div class="tag-bar-bg"><div class="tag-bar" style="width:1%"></div></div>
+            </div></div></div>
+        </div>
+    </div>
+
+    
+    <!-- Functional Clusters -->
+    <div class="section">
+        <div class="section-title">Functional Clusters</div>
+        <p style="font-size:0.8em; color:var(--muted); margin-bottom:18px;">
+            Top 100 genes grouped by biological function based on UniProt keywords.
+            Each tag shows the gene product name and its total CDS count.
+        </p>
+        <div class="cluster-grid">
+            
+            <div class="cluster-card" style="--cluster-color:#3b82f6">
+                <div class="cluster-header">
+                    <span class="cluster-name">DNA Metabolism</span>
+                    <span class="cluster-stats">18 genes &nbsp;·&nbsp; 555 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="putative protein">putative protein<span class="cluster-tag-count">219</span></span><span class="cluster-tag" title="uup">ATP-binding protein Uup<span class="cluster-tag-count">44</span></span><span class="cluster-tag" title="xerC">Tyrosine recombinase XerC<span class="cluster-tag-count">39</span></span><span class="cluster-tag" title="degU">Transcriptional regulatory protein DegU<span class="cluster-tag-count">27</span></span><span class="cluster-tag" title="putative oxidoreductase">putative oxidoreductase<span class="cluster-tag-count">24</span></span><span class="cluster-tag" title="leuO">HTH-type transcriptional regulator<span class="cluster-tag-count">21</span></span><span class="cluster-tag" title="rpoE">RNA polymerase sigma-H factor<span class="cluster-tag-count">21</span></span><span class="cluster-tag" title="manR">putative HTH-type transcriptional regulator<span class="cluster-tag-count">19</span></span><span class="cluster-tag" title="rhaS">HTH-type transcriptional activator RhaS<span class="cluster-tag-count">17</span></span><span class="cluster-tag" title="mutM">Formamidopyrimidine-DNA glycosylase<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="dnaN">DNA polymerase IV<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="phoP">Transcriptional regulatory protein WalR<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="ruvA">Holliday junction branch migration complex su<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="pnp">Polyribonucleotide nucleotidyltransferase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="ssb">Single-stranded DNA-binding protein<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="greA">Transcription elongation factor GreA<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="mobA">DNA primase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="rep">putative zinc protease<span class="cluster-tag-count">13</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#10b981">
+                <div class="cluster-header">
+                    <span class="cluster-name">Transcription</span>
+                    <span class="cluster-stats">1 gene &nbsp;·&nbsp; 13 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="ettA">Energy-dependent translational throttle prote<span class="cluster-tag-count">13</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#f59e0b">
+                <div class="cluster-header">
+                    <span class="cluster-name">Translation &amp; Ribosomes</span>
+                    <span class="cluster-stats">1 gene &nbsp;·&nbsp; 13 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="fmt">Methionyl-tRNA formyltransferase<span class="cluster-tag-count">13</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#ef4444">
+                <div class="cluster-header">
+                    <span class="cluster-name">Energy &amp; Metabolism</span>
+                    <span class="cluster-stats">11 genes &nbsp;·&nbsp; 240 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="iolG">Inositol 2-dehydrogenase/D-chiro-inositol 3-d<span class="cluster-tag-count">44</span></span><span class="cluster-tag" title="stoA">Thiol-disulfide oxidoreductase ResA<span class="cluster-tag-count">34</span></span><span class="cluster-tag" title="fadE12">Acyl-CoA dehydrogenase<span class="cluster-tag-count">27</span></span><span class="cluster-tag" title="msrQ">Protein-methionine-sulfoxide reductase cataly<span class="cluster-tag-count">20</span></span><span class="cluster-tag" title="hcaB">3-phenylpropionate-dihydrodiol/cinnamic acid-<span class="cluster-tag-count">18</span></span><span class="cluster-tag" title="yajO">1-deoxyxylulose-5-phosphate synthase YajO<span class="cluster-tag-count">17</span></span><span class="cluster-tag" title="fgd">F420-dependent glucose-6-phosphate dehydrogen<span class="cluster-tag-count">17</span></span><span class="cluster-tag" title="Slc27a1">Long-chain-fatty-acid--CoA ligase<span class="cluster-tag-count">17</span></span><span class="cluster-tag" title="Inosine-5&#x27;-monophosphate dehydrogenase">Inosine-5&#x27;-monophosphate dehydrogenase<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="tdh">L-threonine 3-dehydrogenase<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="ALOX5">Fatty acid oxidation complex subunit alpha<span class="cluster-tag-count">15</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#8b5cf6">
+                <div class="cluster-header">
+                    <span class="cluster-name">Transport &amp; Membrane</span>
+                    <span class="cluster-stats">30 genes &nbsp;·&nbsp; 682 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="rcsC">Sensor histidine kinase RcsC<span class="cluster-tag-count">68</span></span><span class="cluster-tag" title="livF">High-affinity branched-chain amino acid trans<span class="cluster-tag-count">49</span></span><span class="cluster-tag" title="livH">High-affinity branched-chain amino acid trans<span class="cluster-tag-count">47</span></span><span class="cluster-tag" title="btuC">Vitamin B12 import ATP-binding protein BtuD<span class="cluster-tag-count">45</span></span><span class="cluster-tag" title="Protein">Protein<span class="cluster-tag-count">36</span></span><span class="cluster-tag" title="TonB-dependent receptor P3">TonB-dependent receptor P3<span class="cluster-tag-count">35</span></span><span class="cluster-tag" title="entS">Enterobactin exporter EntS<span class="cluster-tag-count">29</span></span><span class="cluster-tag" title="lptB">Lipopolysaccharide export system ATP-binding <span class="cluster-tag-count">29</span></span><span class="cluster-tag" title="gsiD">Glutathione transport system permease protein<span class="cluster-tag-count">28</span></span><span class="cluster-tag" title="oppA">Oligopeptide transport ATP-binding protein Op<span class="cluster-tag-count">23</span></span><span class="cluster-tag" title="dppB">Dipeptide transport system permease protein D<span class="cluster-tag-count">19</span></span><span class="cluster-tag" title="ftsH">ATP-dependent zinc metalloprotease FtsH<span class="cluster-tag-count">18</span></span><span class="cluster-tag" title="gsiC">Glutathione transport system permease protein<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="artI">putative ABC transporter ATP-binding protein<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="lnrL">Linearmycin resistance ATP-binding protein Ln<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="ribX">Riboflavin transport system permease protein <span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="TonB-dependent receptor P26">TonB-dependent receptor P26<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="araQ">Arabinooligosaccharides transport system perm<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="tatA">Sec-independent protein translocase protein T<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="pal">Tol-Pal system protein TolB<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="lacF">Lactose transport system permease protein Lac<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="dppB">Di/tripeptide transport system permease prote<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="mdtA">Multidrug resistance protein MdtA<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="btuB">Vitamin B12 transporter BtuB<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="oppF">Oligopeptide transport ATP-binding protein Op<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="Putative multidrug export ATP-binding/permease protein">Putative multidrug export ATP-binding/permeas<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="ssuC">Putative aliphatic sulfonates transport perme<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="yknX">putative ABC transporter ATP-binding protein <span class="cluster-tag-count">12</span></span><span class="cluster-tag" title="lgt">Phosphatidylglycerol--prolipoprotein diacylgl<span class="cluster-tag-count">12</span></span><span class="cluster-tag" title="smoH">Sulfoquinovosyl glycerol transport system per<span class="cluster-tag-count">12</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#06b6d4">
+                <div class="cluster-header">
+                    <span class="cluster-name">Stress &amp; Chaperones</span>
+                    <span class="cluster-stats">5 genes &nbsp;·&nbsp; 77 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="moxR1">Chaperone MoxR1<span class="cluster-tag-count">23</span></span><span class="cluster-tag" title="bepA">Beta-barrel assembly-enhancing protease<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="clpB">Chaperone protein DnaK<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="rssB">Regulator of RpoS<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="dap">D-aminopeptidase<span class="cluster-tag-count">13</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#f97316">
+                <div class="cluster-header">
+                    <span class="cluster-name">Signaling &amp; Regulation</span>
+                    <span class="cluster-stats">5 genes &nbsp;·&nbsp; 155 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="sasA">Adaptive-response sensory-kinase SasA<span class="cluster-tag-count">74</span></span><span class="cluster-tag" title="pkn1">Serine/threonine-protein kinase PknD<span class="cluster-tag-count">31</span></span><span class="cluster-tag" title="cheB1">Protein-glutamate methylesterase/protein-glut<span class="cluster-tag-count">23</span></span><span class="cluster-tag" title="deoK">Deoxyribokinase<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="PRS4">Ribose-phosphate pyrophosphokinase<span class="cluster-tag-count">13</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#ec4899">
+                <div class="cluster-header">
+                    <span class="cluster-name">Nucleotide Binding</span>
+                    <span class="cluster-stats">17 genes &nbsp;·&nbsp; 310 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="mshA">D-inositol-3-phosphate glycosyltransferase<span class="cluster-tag-count">44</span></span><span class="cluster-tag" title="ubiE">Ubiquinone/menaquinone biosynthesis C-methylt<span class="cluster-tag-count">37</span></span><span class="cluster-tag" title="PIMT2">Protein-L-isoaspartate O-methyltransferase<span class="cluster-tag-count">20</span></span><span class="cluster-tag" title="gph">Phosphoglycolate phosphatase<span class="cluster-tag-count">19</span></span><span class="cluster-tag" title="HAGHL">Hydroxyacylglutathione hydrolase<span class="cluster-tag-count">19</span></span><span class="cluster-tag" title="HPA">Histidinol-phosphate aminotransferase<span class="cluster-tag-count">17</span></span><span class="cluster-tag" title="facA">Acetyl-coenzyme A synthetase<span class="cluster-tag-count">17</span></span><span class="cluster-tag" title="Glutamate-1-semialdehyde 2,1-aminomutase">Glutamate-1-semialdehyde 2,1-aminomutase<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="prmC">Release factor glutamine methyltransferase<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="ubiG">Ubiquinone biosynthesis O-methyltransferase<span class="cluster-tag-count">15</span></span><span class="cluster-tag" title="Trehalase">Trehalase<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="Glb1">Beta-galactosidase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="pgl">6-phosphogluconolactonase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="mshD">Mycothiol acetyltransferase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="caiB">Succinate--glutarate CoA-transferase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="fcs">Feruloyl-CoA synthase<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="gcvT">Aminomethyltransferase<span class="cluster-tag-count">12</span></span></div>
+            </div>
+            <div class="cluster-card" style="--cluster-color:#84cc16">
+                <div class="cluster-header">
+                    <span class="cluster-name">Other / Unclassified</span>
+                    <span class="cluster-stats">12 genes &nbsp;·&nbsp; 225 CDS</span>
+                </div>
+                <div class="cluster-tags"><span class="cluster-tag" title="3-oxoacyl-[acyl-carrier-protein] reductase FabG">3-oxoacyl-[acyl-carrier-protein] reductase Fa<span class="cluster-tag-count">41</span></span><span class="cluster-tag" title="Malonyl-[acyl-carrier protein] O-methyltransferase">Malonyl-[acyl-carrier protein] O-methyltransf<span class="cluster-tag-count">22</span></span><span class="cluster-tag" title="3-oxoacyl-[acyl-carrier-protein] synthase 2">3-oxoacyl-[acyl-carrier-protein] synthase 2<span class="cluster-tag-count">20</span></span><span class="cluster-tag" title="tRNA(fMet)-specific endonuclease VapC">tRNA(fMet)-specific endonuclease VapC<span class="cluster-tag-count">20</span></span><span class="cluster-tag" title="Glutamine--fructose-6-phosphate aminotransferase [isomerizing]">Glutamine--fructose-6-phosphate aminotransfer<span class="cluster-tag-count">18</span></span><span class="cluster-tag" title="menH">2-succinyl-6-hydroxy-2,4-cyclohexadiene-1-car<span class="cluster-tag-count">18</span></span><span class="cluster-tag" title="Beta-ketoacyl-[acyl-carrier-protein] synthase III">Beta-ketoacyl-[acyl-carrier-protein] synthase<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="[Ribosomal protein bS18]-alanine N-acetyltransferase">[Ribosomal protein bS18]-alanine N-acetyltran<span class="cluster-tag-count">16</span></span><span class="cluster-tag" title="dapA">4-hydroxy-tetrahydrodipicolinate synthase<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="GMP synthase [glutamine-hydrolyzing]">GMP synthase [glutamine-hydrolyzing]<span class="cluster-tag-count">14</span></span><span class="cluster-tag" title="trpB">Tryptophan synthase beta chain<span class="cluster-tag-count">13</span></span><span class="cluster-tag" title="yihI">GTPase Der<span class="cluster-tag-count">13</span></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cluster distribution bar chart -->
+    <div class="section">
+        <div class="section-title">Functional Category Distribution</div>
+        <p style="font-size:0.8em; color:var(--muted); margin-bottom:16px;">
+            Total CDS counts per functional category across all bins.
+        </p>
+        <div style="padding: 4px 0;">
+            
+            <div class="cbar-row">
+                <div class="cbar-label">DNA Metabolism</div>
+                <div class="cbar-bar" style="width:244px; background:#3b82f6"></div>
+                <div class="cbar-count">555 <span class="cbar-pct">(1.6%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Transcription</div>
+                <div class="cbar-bar" style="width:5px; background:#10b981"></div>
+                <div class="cbar-count">13 <span class="cbar-pct">(0.0%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Translation &amp; Ribosomes</div>
+                <div class="cbar-bar" style="width:5px; background:#f59e0b"></div>
+                <div class="cbar-count">13 <span class="cbar-pct">(0.0%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Energy &amp; Metabolism</div>
+                <div class="cbar-bar" style="width:105px; background:#ef4444"></div>
+                <div class="cbar-count">240 <span class="cbar-pct">(0.7%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Transport &amp; Membrane</div>
+                <div class="cbar-bar" style="width:300px; background:#8b5cf6"></div>
+                <div class="cbar-count">682 <span class="cbar-pct">(1.9%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Stress &amp; Chaperones</div>
+                <div class="cbar-bar" style="width:33px; background:#06b6d4"></div>
+                <div class="cbar-count">77 <span class="cbar-pct">(0.2%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Signaling &amp; Regulation</div>
+                <div class="cbar-bar" style="width:68px; background:#f97316"></div>
+                <div class="cbar-count">155 <span class="cbar-pct">(0.4%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Nucleotide Binding</div>
+                <div class="cbar-bar" style="width:136px; background:#ec4899"></div>
+                <div class="cbar-count">310 <span class="cbar-pct">(0.9%)</span></div>
+            </div>
+            <div class="cbar-row">
+                <div class="cbar-label">Other / Unclassified</div>
+                <div class="cbar-bar" style="width:98px; background:#84cc16"></div>
+                <div class="cbar-count">225 <span class="cbar-pct">(0.6%)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top N gene products -->
+    <div class="section">
+        <div class="section-title">Top 100 Annotated Gene Products</div>
+        <p style="font-size:0.8em; color:var(--muted); margin-bottom:14px;">
+            Percentages are of total CDS (including hypotheticals).
+            Gene names and function descriptions from UniProt/Swiss-Prot reviewed entries.
+        </p>
+        <input
+            class="search-bar"
+            type="text"
+            id="geneSearch"
+            placeholder="Filter by product name,gene, or function..."
+            oninput="filterTable()"
+        >
+        <table id="geneTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Gene Product</th>
+                    <th>Gene</th><th>Function (UniProt)</th>
+                    <th style="text-align:right">Count</th>
+                    <th>% of CDS</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="g-rank">1</td>
+            <td class="g-product">putative protein</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">Capsid protein that assembles with the capsid proteins VP1 and VP3 to form a pseudo-T3 icosahedral capsid of about 40 nm.</td>
+            <td class="g-count">219</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:15px"></div>
+                    <span>0.62%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">2</td>
+            <td class="g-product">Adaptive-response sensory-kinase SasA</td>
+            
+            <td class="g-gene">sasA</td>
+            <td class="g-func">Member of the two-component regulatory system SasA/RpaA involved in genome-wide circadian gene expression.</td>
+            <td class="g-count">74</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:5px"></div>
+                    <span>0.21%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">3</td>
+            <td class="g-product">Sensor histidine kinase RcsC</td>
+            
+            <td class="g-gene">rcsC</td>
+            <td class="g-func">Component of the Rcs signaling system, which controls transcription of numerous genes.</td>
+            <td class="g-count">68</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:4px"></div>
+                    <span>0.19%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">4</td>
+            <td class="g-product">High-affinity branched-chain amino acid transport ATP-binding protein LivF</td>
+            
+            <td class="g-gene">livF</td>
+            <td class="g-func">Component of the leucine-specific transport system.</td>
+            <td class="g-count">49</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.14%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">5</td>
+            <td class="g-product">High-affinity branched-chain amino acid transport system permease protein LivH</td>
+            
+            <td class="g-gene">livH</td>
+            <td class="g-func">Part of the binding protein-dependent transport system for branched-chain amino acids.</td>
+            <td class="g-count">47</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.13%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">6</td>
+            <td class="g-product">Vitamin B12 import ATP-binding protein BtuD</td>
+            
+            <td class="g-gene">btuC</td>
+            <td class="g-func">Part of the ABC transporter complex BtuCDF involved in vitamin B12 import.</td>
+            <td class="g-count">45</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.13%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">7</td>
+            <td class="g-product">D-inositol-3-phosphate glycosyltransferase</td>
+            
+            <td class="g-gene">mshA</td>
+            <td class="g-func">Catalyzes the transfer of a N-acetyl-glucosamine moiety to 1D-myo-inositol 3-phosphate to produce 1D-myo-inositol 2-acetamido-2-deoxy-glucopyranoside 3-phosphate in the mycothiol biosynthesis pathway.</td>
+            <td class="g-count">44</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">8</td>
+            <td class="g-product">Inositol 2-dehydrogenase/D-chiro-inositol 3-dehydrogenase</td>
+            
+            <td class="g-gene">iolG</td>
+            <td class="g-func">Involved in the oxidation of myo-inositol (MI) and D-chiro-inositol (DCI) to 2-keto-myo-inositol (2KMI or 2-inosose) and 1-keto-D-chiro-inositol (1KDCI), respectively.</td>
+            <td class="g-count">44</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">9</td>
+            <td class="g-product">ATP-binding protein Uup</td>
+            
+            <td class="g-gene">uup</td>
+            <td class="g-func">Probably plays a role in ribosome assembly or function; overexpression suppresses cold-sensitive growth of a bipA deletion (Probable) (Ref.</td>
+            <td class="g-count">44</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:3px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">10</td>
+            <td class="g-product">3-oxoacyl-[acyl-carrier-protein] reductase FabG</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">41</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.12%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">11</td>
+            <td class="g-product">Tyrosine recombinase XerC</td>
+            
+            <td class="g-gene">xerC</td>
+            <td class="g-func">Site-specific tyrosine recombinase, which acts by catalyzing the cutting and rejoining of the recombining DNA molecules.</td>
+            <td class="g-count">39</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.11%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">12</td>
+            <td class="g-product">Ubiquinone/menaquinone biosynthesis C-methyltransferase UbiE</td>
+            
+            <td class="g-gene">ubiE</td>
+            <td class="g-func">Methyltransferase required for the conversion of demethylmenaquinol (DMKH2) to menaquinol (MKH2) and the conversion of 2-polyprenyl-6-methoxy-1,4-benzoquinol (DDMQH2) to 2-polyprenyl-3-methyl-6-met....</td>
+            <td class="g-count">37</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.11%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">13</td>
+            <td class="g-product">Protein</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">Forms homotetrameric potassium sensitive ion channels (viroporin) and may modulate virus release.</td>
+            <td class="g-count">36</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.10%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">14</td>
+            <td class="g-product">TonB-dependent receptor P3</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">TonB-dependent receptor probably involved in ulvan degradation (Probable).</td>
+            <td class="g-count">35</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.10%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">15</td>
+            <td class="g-product">Thiol-disulfide oxidoreductase ResA</td>
+            
+            <td class="g-gene">stoA</td>
+            <td class="g-func">Thiol-disulfide oxidoreductase with a reductive function (PubMed:15322369, PubMed:15342593).</td>
+            <td class="g-count">34</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.10%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">16</td>
+            <td class="g-product">Serine/threonine-protein kinase PknD</td>
+            
+            <td class="g-gene">pkn1</td>
+            <td class="g-func">Together with the serine/threonine kinase PknD, may play a role in specific interactions with host proteins during host intracellular growth (Probable).</td>
+            <td class="g-count">31</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.09%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">17</td>
+            <td class="g-product">Enterobactin exporter EntS</td>
+            
+            <td class="g-gene">entS</td>
+            <td class="g-func">Component of an export pathway for enterobactin.</td>
+            <td class="g-count">29</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">18</td>
+            <td class="g-product">Lipopolysaccharide export system ATP-binding protein LptB</td>
+            
+            <td class="g-gene">lptB</td>
+            <td class="g-func">Part of the ABC transporter complex LptBFG involved in the translocation of lipopolysaccharide (LPS) from the inner membrane to the outer membrane.</td>
+            <td class="g-count">29</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:2px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">19</td>
+            <td class="g-product">Glutathione transport system permease protein GsiD</td>
+            
+            <td class="g-gene">gsiD</td>
+            <td class="g-func">Part of the ABC transporter complex GsiABCD involved in glutathione import.</td>
+            <td class="g-count">28</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">20</td>
+            <td class="g-product">Transcriptional regulatory protein DegU</td>
+            
+            <td class="g-gene">degU</td>
+            <td class="g-func">Member of the two-component regulatory system DegS/DegU, which plays an important role in the transition growth phase.</td>
+            <td class="g-count">27</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">21</td>
+            <td class="g-product">Acyl-CoA dehydrogenase</td>
+            
+            <td class="g-gene">fadE12</td>
+            <td class="g-func">Has acyl-CoA dehydrogenase activity on a number of substrates.</td>
+            <td class="g-count">27</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.08%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">22</td>
+            <td class="g-product">putative oxidoreductase</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">An RNA-guided dsDNA endonuclease.</td>
+            <td class="g-count">24</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">23</td>
+            <td class="g-product">Chaperone MoxR1</td>
+            
+            <td class="g-gene">moxR1</td>
+            <td class="g-func">Displays ATP-enhanced chaperone activity (PubMed:26933057).</td>
+            <td class="g-count">23</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">24</td>
+            <td class="g-product">Oligopeptide transport ATP-binding protein OppD</td>
+            
+            <td class="g-gene">oppA</td>
+            <td class="g-func">Part of the ABC transporter complex OppABCD involved in the uptake of oligopeptides (PubMed:20808924, PubMed:38548954).</td>
+            <td class="g-count">23</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">25</td>
+            <td class="g-product">Protein-glutamate methylesterase/protein-glutamine glutaminase</td>
+            
+            <td class="g-gene">cheB1</td>
+            <td class="g-func">Involved in chemotaxis.</td>
+            <td class="g-count">23</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.07%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">26</td>
+            <td class="g-product">Malonyl-[acyl-carrier protein] O-methyltransferase</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">22</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">27</td>
+            <td class="g-product">HTH-type transcriptional regulator</td>
+            
+            <td class="g-gene">leuO</td>
+            <td class="g-func">A global transcription factor.</td>
+            <td class="g-count">21</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">28</td>
+            <td class="g-product">RNA polymerase sigma-H factor</td>
+            
+            <td class="g-gene">rpoE</td>
+            <td class="g-func">Sigma factors are initiation factors that promote the attachment of RNA polymerase (RNAP) to specific initiation sites and are then released (PubMed:2691330, PubMed:7889935, PubMed:9159522, PubMed:....</td>
+            <td class="g-count">21</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">29</td>
+            <td class="g-product">3-oxoacyl-[acyl-carrier-protein] synthase 2</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">30</td>
+            <td class="g-product">tRNA(fMet)-specific endonuclease VapC</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">31</td>
+            <td class="g-product">Protein-methionine-sulfoxide reductase catalytic subunit MsrP</td>
+            
+            <td class="g-gene">msrQ</td>
+            <td class="g-func">Part of the MsrPQ system that repairs oxidized periplasmic proteins containing methionine sulfoxide residues (Met-O), using respiratory chain electrons.</td>
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">32</td>
+            <td class="g-product">Protein-L-isoaspartate O-methyltransferase</td>
+            
+            <td class="g-gene">PIMT2</td>
+            <td class="g-func">Catalyzes the methyl esterification of L-isoaspartyl residues in peptides and proteins that result from spontaneous decomposition of normal L-aspartyl and L-asparaginyl residues.</td>
+            <td class="g-count">20</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.06%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">33</td>
+            <td class="g-product">putative HTH-type transcriptional regulator</td>
+            
+            <td class="g-gene">manR</td>
+            <td class="g-func">Positively regulates the expression of the mannose operon that consists of three genes, manP, manA, and yjdF, which are responsible for the transport and utilization of mannose.</td>
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">34</td>
+            <td class="g-product">Phosphoglycolate phosphatase</td>
+            
+            <td class="g-gene">gph</td>
+            <td class="g-func">Specifically catalyzes the dephosphorylation of 2-phosphoglycolate (2P-Gly).</td>
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">35</td>
+            <td class="g-product">Hydroxyacylglutathione hydrolase</td>
+            
+            <td class="g-gene">HAGHL</td>
+            <td class="g-func">Hydrolase acting on ester bonds.</td>
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">36</td>
+            <td class="g-product">Dipeptide transport system permease protein DppB</td>
+            
+            <td class="g-gene">dppB</td>
+            <td class="g-func">Part of the ABC transporter DppABCDF involved in dipeptide transport (PubMed:7536291).</td>
+            <td class="g-count">19</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">37</td>
+            <td class="g-product">ATP-dependent zinc metalloprotease FtsH</td>
+            
+            <td class="g-gene">ftsH</td>
+            <td class="g-func">Acts as a processive, ATP-dependent zinc metallopeptidase for both cytoplasmic and membrane proteins.</td>
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">38</td>
+            <td class="g-product">Glutamine--fructose-6-phosphate aminotransferase [isomerizing]</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">39</td>
+            <td class="g-product">3-phenylpropionate-dihydrodiol/cinnamic acid-dihydrodiol dehydrogenase</td>
+            
+            <td class="g-gene">hcaB</td>
+            <td class="g-func">Converts 3-phenylpropionate-dihydrodiol (PP-dihydrodiol) and cinnamic acid-dihydrodiol (CI-dihydrodiol) into 3-(2,3-dihydroxylphenyl)propanoic acid (DHPP) and 2,3-dihydroxicinnamic acid (DHCI), res....</td>
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">40</td>
+            <td class="g-product">2-succinyl-6-hydroxy-2,4-cyclohexadiene-1-carboxylate synthase</td>
+            
+            <td class="g-gene">menH</td>
+            <td class="g-func">Catalyzes a proton abstraction reaction that results in 2,5-elimination of pyruvate from 2-succinyl-5-enolpyruvyl-6-hydroxy-3-cyclohexene-1-carboxylate (SEPHCHC) and the formation of 2-succinyl-6-h....</td>
+            <td class="g-count">18</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">41</td>
+            <td class="g-product">1-deoxyxylulose-5-phosphate synthase YajO</td>
+            
+            <td class="g-gene">yajO</td>
+            <td class="g-func">Catalyzes the conversion of ribulose 5-phosphate (Ru5P) to 1-deoxy-D-xylulose 5-phosphate (DXP), providing a direct route from pentoses to terpenes.</td>
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">42</td>
+            <td class="g-product">Histidinol-phosphate aminotransferase</td>
+            
+            <td class="g-gene">HPA</td>
+            <td class="g-func">—</td>
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">43</td>
+            <td class="g-product">HTH-type transcriptional activator RhaS</td>
+            
+            <td class="g-gene">rhaS</td>
+            <td class="g-func">Activates expression of the rhaBAD and rhaT operons.</td>
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">44</td>
+            <td class="g-product">Acetyl-coenzyme A synthetase</td>
+            
+            <td class="g-gene">facA</td>
+            <td class="g-func">—</td>
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">45</td>
+            <td class="g-product">F420-dependent glucose-6-phosphate dehydrogenase</td>
+            
+            <td class="g-gene">fgd</td>
+            <td class="g-func">Catalyzes the coenzyme F420-dependent oxidation of glucose 6-phosphate (G6P) to 6-phosphogluconolactone.</td>
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">46</td>
+            <td class="g-product">Long-chain-fatty-acid--CoA ligase</td>
+            
+            <td class="g-gene">Slc27a1</td>
+            <td class="g-func">Mediates the import of long-chain fatty acids (LCFA) into the cell by facilitating their transport at the plasma membrane (Probable) (PubMed:10471110, PubMed:11970897, PubMed:12235169, PubMed:15699....</td>
+            <td class="g-count">17</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">47</td>
+            <td class="g-product">Glutathione transport system permease protein GsiC</td>
+            
+            <td class="g-gene">gsiC</td>
+            <td class="g-func">Part of the ABC transporter complex GsiABCD involved in glutathione import.</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">48</td>
+            <td class="g-product">Beta-ketoacyl-[acyl-carrier-protein] synthase III</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">49</td>
+            <td class="g-product">[Ribosomal protein bS18]-alanine N-acetyltransferase</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">50</td>
+            <td class="g-product">putative ABC transporter ATP-binding protein</td>
+            
+            <td class="g-gene">artI</td>
+            <td class="g-func">Part of the ABC transporter complex ArtPIQMJ involved in arginine transport.</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">51</td>
+            <td class="g-product">Linearmycin resistance ATP-binding protein LnrL</td>
+            
+            <td class="g-gene">lnrL</td>
+            <td class="g-func">Required for resistance to linearmycins, a family of antibiotic-specialized metabolites produced by some streptomycetes (PubMed:26647299, PubMed:28461449).</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">52</td>
+            <td class="g-product">Riboflavin transport system permease protein RibX</td>
+            
+            <td class="g-gene">ribX</td>
+            <td class="g-func">Part of an ABC transporter complex that transports riboflavin into the cell.</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">53</td>
+            <td class="g-product">Inosine-5&#x27;-monophosphate dehydrogenase</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">Catalyzes the conversion of inosine 5&#x27;-phosphate (IMP) to xanthosine 5&#x27;-phosphate (XMP), the first committed and rate-limiting step in the de novo synthesis of guanine nucleotides, and therefore pl....</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">54</td>
+            <td class="g-product">Glutamate-1-semialdehyde 2,1-aminomutase</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">55</td>
+            <td class="g-product">Formamidopyrimidine-DNA glycosylase</td>
+            
+            <td class="g-gene">mutM</td>
+            <td class="g-func">Involved in base excision repair of DNA damaged by oxidation or by mutagenic agents.</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">56</td>
+            <td class="g-product">TonB-dependent receptor P26</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">TonB-dependent receptor probably involved in ulvan degradation (Probable).</td>
+            <td class="g-count">16</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.05%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">57</td>
+            <td class="g-product">Arabinooligosaccharides transport system permease protein AraQ</td>
+            
+            <td class="g-gene">araQ</td>
+            <td class="g-func">Part of the ABC transporter complex AraNPQ involved in the uptake of arabinooligosaccharides (By similarity).</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">58</td>
+            <td class="g-product">DNA polymerase IV</td>
+            
+            <td class="g-gene">dnaN</td>
+            <td class="g-func">Confers DNA tethering and processivity to DNA polymerases and other proteins.</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">59</td>
+            <td class="g-product">Release factor glutamine methyltransferase</td>
+            
+            <td class="g-gene">prmC</td>
+            <td class="g-func">Methylates the class 1 translation termination release factors RF1/PrfA and RF2/PrfB on the glutamine residue of the universally conserved GGQ motif.</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">60</td>
+            <td class="g-product">L-threonine 3-dehydrogenase</td>
+            
+            <td class="g-gene">tdh</td>
+            <td class="g-func">Catalyzes the NAD(+)-dependent oxidation of L-threonine to 2-amino-3-ketobutyrate.</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">61</td>
+            <td class="g-product">Sec-independent protein translocase protein TatA</td>
+            
+            <td class="g-gene">tatA</td>
+            <td class="g-func">Part of the twin-arginine translocation (Tat) system that transports large folded proteins containing a characteristic twin-arginine motif in their signal peptide across membranes.</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">62</td>
+            <td class="g-product">Fatty acid oxidation complex subunit alpha</td>
+            
+            <td class="g-gene">ALOX5</td>
+            <td class="g-func">Catalyzes the oxygenation of arachidonate ((5Z,8Z,11Z,14Z)-eicosatetraenoate) to 5-hydroperoxyeicosatetraenoate (5-HPETE) followed by the dehydration to 5,6- epoxyeicosatetraenoate (Leukotriene A4/....</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">63</td>
+            <td class="g-product">Beta-barrel assembly-enhancing protease</td>
+            
+            <td class="g-gene">bepA</td>
+            <td class="g-func">Functions both as a chaperone and a metalloprotease.</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">64</td>
+            <td class="g-product">Tol-Pal system protein TolB</td>
+            
+            <td class="g-gene">pal</td>
+            <td class="g-func">Part of the Tol-Pal system, which plays a role in outer membrane invagination during cell division and is important for maintaining outer membrane integrity (PubMed:11115123, PubMed:17233825).</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">65</td>
+            <td class="g-product">Ubiquinone biosynthesis O-methyltransferase</td>
+            
+            <td class="g-gene">ubiG</td>
+            <td class="g-func">O-methyltransferase that catalyzes the 2 O-methylation steps in the ubiquinone biosynthetic pathway.</td>
+            <td class="g-count">15</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:1px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">66</td>
+            <td class="g-product">Lactose transport system permease protein LacF</td>
+            
+            <td class="g-gene">lacF</td>
+            <td class="g-func">Part of the binding protein-dependent transport system for lactose.</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">67</td>
+            <td class="g-product">Deoxyribokinase</td>
+            
+            <td class="g-gene">deoK</td>
+            <td class="g-func">Catalyzes the ATP-dependent phosphorylation of 2-deoxy-D-ribose to 2-deoxy-D-ribose 5-phosphate (dRib-5P), allowing the use of deoxyribose as the sole carbon source (PubMed:4376665).</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">68</td>
+            <td class="g-product">Transcriptional regulatory protein WalR</td>
+            
+            <td class="g-gene">phoP</td>
+            <td class="g-func">Member of the two-component regulatory system PhoP/PhoQ involved in adaptation to low Mg(2+) environments and the control of acid resistance genes.</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">69</td>
+            <td class="g-product">4-hydroxy-tetrahydrodipicolinate synthase</td>
+            
+            <td class="g-gene">dapA</td>
+            <td class="g-func">Catalyzes the condensation of (S)-aspartate-beta-semialdehyde [(S)-ASA] and pyruvate to 4-hydroxy-tetrahydrodipicolinate (HTPA).</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">70</td>
+            <td class="g-product">GMP synthase [glutamine-hydrolyzing]</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">—</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">71</td>
+            <td class="g-product">Holliday junction branch migration complex subunit RuvB</td>
+            
+            <td class="g-gene">ruvA</td>
+            <td class="g-func">The RuvA-RuvB-RuvC complex processes Holliday junction (HJ) DNA during genetic recombination and DNA repair (PubMed:21531731, PubMed:6374379).</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">72</td>
+            <td class="g-product">Trehalase</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">Catalyzes the hydrolysis of alpha,alpha-trehalose into two molecules of D-glucose.</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">73</td>
+            <td class="g-product">Di/tripeptide transport system permease protein DppB</td>
+            
+            <td class="g-gene">dppB</td>
+            <td class="g-func">Part of the ABC transporter DppABCDF involved in the uptake of various di/tripeptides (PubMed:25338022).</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">74</td>
+            <td class="g-product">Multidrug resistance protein MdtA</td>
+            
+            <td class="g-gene">mdtA</td>
+            <td class="g-func">The MdtABC tripartite complex confers resistance against novobiocin and deoxycholate.</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">75</td>
+            <td class="g-product">Vitamin B12 transporter BtuB</td>
+            
+            <td class="g-gene">btuB</td>
+            <td class="g-func">Involved in the active translocation of vitamin B12 (cyanocobalamin) across the outer membrane to the periplasmic space (PubMed:4579869).</td>
+            <td class="g-count">14</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">76</td>
+            <td class="g-product">Chaperone protein DnaK</td>
+            
+            <td class="g-gene">clpB</td>
+            <td class="g-func">Part of a stress-induced multi-chaperone system, it is involved in the recovery of the cell from heat-induced damage, in cooperation with DnaK, DnaJ and GrpE.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">77</td>
+            <td class="g-product">Beta-galactosidase</td>
+            
+            <td class="g-gene">Glb1</td>
+            <td class="g-func">Cleaves beta-linked terminal galactosyl residues from gangliosides, glycoproteins, and glycosaminoglycans.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">78</td>
+            <td class="g-product">Oligopeptide transport ATP-binding protein OppF</td>
+            
+            <td class="g-gene">oppF</td>
+            <td class="g-func">Part of the ABC transporter complex OppABCDF involved in the uptake of oligopeptides (By similarity).</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">79</td>
+            <td class="g-product">Polyribonucleotide nucleotidyltransferase</td>
+            
+            <td class="g-gene">pnp</td>
+            <td class="g-func">Involved in mRNA degradation.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">80</td>
+            <td class="g-product">Ribose-phosphate pyrophosphokinase</td>
+            
+            <td class="g-gene">PRS4</td>
+            <td class="g-func">—</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">81</td>
+            <td class="g-product">Energy-dependent translational throttle protein EttA</td>
+            
+            <td class="g-gene">ettA</td>
+            <td class="g-func">A translation factor that gates the progression of the 70S ribosomal initiation complex (IC, containing tRNA(fMet) in the P-site) into the translation elongation cycle by using a mechanism sensitiv....</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">82</td>
+            <td class="g-product">Single-stranded DNA-binding protein</td>
+            
+            <td class="g-gene">ssb</td>
+            <td class="g-func">Plays an important role in DNA replication, recombination and repair.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">83</td>
+            <td class="g-product">Tryptophan synthase beta chain</td>
+            
+            <td class="g-gene">trpB</td>
+            <td class="g-func">The beta subunit is responsible for the synthesis of L-tryptophan from indole and L-serine.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">84</td>
+            <td class="g-product">Putative multidrug export ATP-binding/permease protein</td>
+            
+            <td class="g-gene">—</td>
+            <td class="g-func">May be involved in multidrug export.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">85</td>
+            <td class="g-product">6-phosphogluconolactonase</td>
+            
+            <td class="g-gene">pgl</td>
+            <td class="g-func">Catalyzes the hydrolysis of 6-phosphogluconolactone to 6-phosphogluconate.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">86</td>
+            <td class="g-product">Transcription elongation factor GreA</td>
+            
+            <td class="g-gene">greA</td>
+            <td class="g-func">Necessary for efficient RNA polymerase transcription elongation past template-encoded arresting sites.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">87</td>
+            <td class="g-product">DNA primase</td>
+            
+            <td class="g-gene">mobA</td>
+            <td class="g-func">Part of the relaxosome complex that is responsible for plasmid transfer during conjugation.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">88</td>
+            <td class="g-product">GTPase Der</td>
+            
+            <td class="g-gene">yihI</td>
+            <td class="g-func">A GTPase-activating protein (GAP) that modifies Der/EngA GTPase function, negatively regulating cell growth, probably via ribosome assembly.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">89</td>
+            <td class="g-product">Mycothiol acetyltransferase</td>
+            
+            <td class="g-gene">mshD</td>
+            <td class="g-func">Catalyzes the transfer of acetyl from acetyl-CoA to desacetylmycothiol (Cys-GlcN-Ins) to form mycothiol.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">90</td>
+            <td class="g-product">putative zinc protease</td>
+            
+            <td class="g-gene">rep</td>
+            <td class="g-func">Multifunctional protein involved in the transcription and replication of viral RNAs.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">91</td>
+            <td class="g-product">Methionyl-tRNA formyltransferase</td>
+            
+            <td class="g-gene">fmt</td>
+            <td class="g-func">Attaches a formyl group to the free amino group of methionyl-tRNA(fMet).</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">92</td>
+            <td class="g-product">Regulator of RpoS</td>
+            
+            <td class="g-gene">rssB</td>
+            <td class="g-func">Regulates the turnover of the sigma S factor (RpoS) by promoting its proteolysis in exponentially growing cells.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">93</td>
+            <td class="g-product">D-aminopeptidase</td>
+            
+            <td class="g-gene">dap</td>
+            <td class="g-func">Hydrolyzes N-terminal residues in D-amino acid-containing peptides.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">94</td>
+            <td class="g-product">Putative aliphatic sulfonates transport permease protein SsuC</td>
+            
+            <td class="g-gene">ssuC</td>
+            <td class="g-func">Part of a binding protein-dependent transport system for aliphatic sulfonates.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">95</td>
+            <td class="g-product">Succinate--glutarate CoA-transferase</td>
+            
+            <td class="g-gene">caiB</td>
+            <td class="g-func">Is involved in L-lysine degradation and provides glutaryl-CoA for biotin synthesis.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">96</td>
+            <td class="g-product">Feruloyl-CoA synthase</td>
+            
+            <td class="g-gene">fcs</td>
+            <td class="g-func">Catalyzes the formation of (E)-feruloyl-CoA, AMP and diphosphate from (E)-ferulate, CoA and ATP.</td>
+            <td class="g-count">13</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.04%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">97</td>
+            <td class="g-product">putative ABC transporter ATP-binding protein YknY</td>
+            
+            <td class="g-gene">yknX</td>
+            <td class="g-func">Part of an unusual four-component transporter, which is required for protection against the killing factor SdpC (sporulation-delaying protein).</td>
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">98</td>
+            <td class="g-product">Aminomethyltransferase</td>
+            
+            <td class="g-gene">gcvT</td>
+            <td class="g-func">The glycine cleavage system catalyzes the degradation of glycine.</td>
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">99</td>
+            <td class="g-product">Phosphatidylglycerol--prolipoprotein diacylglyceryl transferase</td>
+            
+            <td class="g-gene">lgt</td>
+            <td class="g-func">Catalyzes the transfer of the diacylglyceryl group from phosphatidylglycerol to the sulfhydryl group of the N-terminal cysteine of a prolipoprotein, the first step in the formation of mature lipopr....</td>
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="g-rank">100</td>
+            <td class="g-product">Sulfoquinovosyl glycerol transport system permease protein SmoH</td>
+            
+            <td class="g-gene">smoH</td>
+            <td class="g-func">Part of the ABC transporter complex SmoEFGH involved in sulfoquinovosyl glycerol (SQGro) uptake (Probable).</td>
+            <td class="g-count">12</td>
+            <td class="g-pct">
+                <div class="bar-wrap">
+                    <div class="bar" style="width:0px"></div>
+                    <span>0.03%</span>
+                </div>
+            </td>
+        </tr></tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        annotation_report.py &nbsp;·&nbsp; Prokka &nbsp;·&nbsp;
+        Generated 2026-07-23 16:47
+        &nbsp;·&nbsp; UniProt/Swiss-Prot reviewed entries only
+    </div>
+
+</div>
+
+<script>
+function filterTable() {
+    const q    = document.getElementById('geneSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#geneTable tbody tr');
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+</script>
+
+</body>
+</html>
