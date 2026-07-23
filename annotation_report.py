@@ -35,6 +35,7 @@ import glob
 import time
 import json
 import re
+import gzip
 from collections import Counter, defaultdict
 import html as html_module
 import urllib.request
@@ -49,9 +50,15 @@ __version__ = '0.1.2'
 # ─────────────────────────────────────────────
 
 def detect_tool(annotation_dir):
-    gff3_files = glob.glob(os.path.join(annotation_dir, '**', '*.gff3'), recursive=True)
+    gff3_files = (
+            glob.glob(os.path.join(annotation_dir, '**', '*.gff3'), recursive=True) +
+            glob.glob(os.path.join(annotation_dir, '**', '*.gff3.gz'), recursive=True)
+            )
     json_files = glob.glob(os.path.join(annotation_dir, '**', '*.json'), recursive=True)
-    gff_files  = glob.glob(os.path.join(annotation_dir, '**', '*.gff'),  recursive=True)
+    gff_files  = (
+            glob.glob(os.path.join(annotation_dir, '**', '*.gff'),  recursive=True) +
+            glob.glob(os.path.join(annotation_dir, '**', '*.gff.gz'), recursive=True)
+            )
     tsv_files  = glob.glob(os.path.join(annotation_dir, '**', '*.tsv'),  recursive=True)
 
     if gff3_files or json_files:
@@ -72,14 +79,17 @@ def detect_tool(annotation_dir):
 # ─────────────────────────────────────────────
 
 def parse_gff_files(annotation_dir, extension='gff'):
-    pattern   = os.path.join(annotation_dir, '**', f'*.{extension}')
-    gff_files = glob.glob(pattern, recursive=True)
+    gff_files = (
+        glob.glob(os.path.join(annotation_dir, '**', f'*.{extension}'), recursive=True) +
+        glob.glob(os.path.join(annotation_dir, '**', f'*.{extension}.gz'), recursive=True)
+    )
 
     contig_lengths = {}
     rna_counter    = Counter()
 
     for gff_path in gff_files:
-        with open(gff_path, errors='replace') as f:
+        opener = gzip.open if gff_path.endswith('.gz') else open
+        with opener(gff_path, 'rt', errors='replace') as f:
             for line in f:
                 line = line.rstrip()
                 if line.startswith('##sequence-region'):
@@ -195,6 +205,88 @@ def parse_tsvs(annotation_dir, tool):
     return (cds_counter, hypothetical_count, feature_counter,
             total_cds, bin_count, ec_counter, cog_counter, dbxref_counter)
 
+# ─────────────────────────────────────────────
+# GFF-only parsing (fallback when no TSV files)
+# ─────────────────────────────────────────────
+
+def parse_gff_for_products(annotation_dir, tool):
+    ext = 'gff3' if tool == 'bakta' else 'gff'
+
+    # Also support .gff.gz compressed files
+    gff_files = (
+        glob.glob(os.path.join(annotation_dir, '**', f'*.{ext}'), recursive=True) +
+        glob.glob(os.path.join(annotation_dir, '**', f'*.{ext}.gz'), recursive=True)
+    )
+
+    if not gff_files:
+        sys.exit(f"ERROR: No .{ext} files found under '{annotation_dir}'.")
+
+    print(f"Found {len(gff_files)} GFF file(s) for tool={tool} (GFF-only mode).")
+
+    cds_counter        = Counter()
+    hypothetical_count = 0
+    feature_counter    = Counter()
+    total_cds          = 0
+    bin_count          = 0
+    ec_counter         = Counter()
+    cog_counter        = Counter()
+    dbxref_counter     = Counter()
+
+    def parse_attrs(attr_str):
+        """Parse GFF attributes column into a dict."""
+        attrs = {}
+        for part in attr_str.split(';'):
+            part = part.strip()
+            if '=' in part:
+                key, _, val = part.partition('=')
+                attrs[key.strip()] = val.strip()
+        return attrs
+
+    for gff_path in gff_files:
+        bin_count += 1
+        opener = gzip.open if gff_path.endswith('.gz') else open
+        with opener(gff_path, 'rt', errors='replace') as f:
+            for line in f:
+                line = line.rstrip()
+                if line.startswith('#') or not line:
+                    continue
+                cols = line.split('\t')
+                if len(cols) < 9:
+                    continue
+
+                feature  = cols[2].lower()
+                attr_str = cols[8]
+                attrs    = parse_attrs(attr_str)
+                product  = attrs.get('product', '').strip()
+
+                feature_counter[feature] += 1
+
+                if feature == 'cds':
+                    total_cds += 1
+                    if product.lower() in ('hypothetical protein', 'hypothetical_protein', ''):
+                        hypothetical_count += 1
+                    else:
+                        cds_counter[product] += 1
+                        ec = attrs.get('eC_number', '')
+                        if ec:
+                            ec_counter[ec] += 1
+                        cog = attrs.get('COG', '')
+                        if cog:
+                            cog_counter[cog] += 1
+                        db_xref = attrs.get('db_xref', '')
+                        if db_xref:
+                            for ref in db_xref.split(','):
+                                ref = ref.strip()
+                                db = ref.split(':')[0] if ':' in ref else ref
+                                if db:
+                                    dbxref_counter[db] += 1
+
+    print(f"Processed {bin_count} bin(s) from GFF files.")
+    print(f"Total CDS: {total_cds} ({hypothetical_count} hypothetical, "
+          f"{total_cds - hypothetical_count} annotated)")
+
+    return (cds_counter, hypothetical_count, feature_counter,
+            total_cds, bin_count, ec_counter, cog_counter, dbxref_counter)
 
 # ─────────────────────────────────────────────
 # Bakta JSON enrichment
@@ -1062,10 +1154,25 @@ def main():
 
     tool = args.tool or detect_tool(args.annotation_dir)
 
-    (cds_counter, hypothetical_count, feature_counter,
-     total_cds, bin_count, ec_counter, cog_counter, dbxref_counter) = parse_tsvs(
-        args.annotation_dir, tool
-    )
+    # Check for TSV files first, fall back to GFF-only parsing
+    tsv_files = glob.glob(os.path.join(args.annotation_dir, '**', '*.tsv'), recursive=True)
+    tsv_files = [
+        f for f in tsv_files
+        if not any(skip in os.path.basename(f).lower()
+               for skip in ('hypothetical', 'inference'))
+    ]
+
+    if tsv_files:
+        (cds_counter, hypothetical_count, feature_counter,
+         total_cds, bin_count, ec_counter, cog_counter, dbxref_counter) = parse_tsvs(
+            args.annotation_dir, tool
+        )
+    else:
+        print("No TSV files found — switching to GFF-only parsing mode.")
+        (cds_counter, hypothetical_count, feature_counter,
+         total_cds, bin_count, ec_counter, cog_counter, dbxref_counter) = parse_gff_for_products(
+            args.annotation_dir, tool
+        )
 
     if total_cds == 0:
         sys.exit("ERROR: No CDS features found. Check your annotation directory.")
